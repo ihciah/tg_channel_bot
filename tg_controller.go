@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"time"
-	"github.com/pkg/errors"
+	"errors"
 	f "github.com/ihciah/tg_channel_bot/fetchers"
 )
 
