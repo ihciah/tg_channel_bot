@@ -29,6 +29,6 @@ func main() {
 	t := TelegramBot{}
 	t.LoadConfig(config_path)
 	RunCron(&t)
-	ListenExit(&t)
+	go ListenExit(&t)
 	t.Serve()
 }
