@@ -15,6 +15,7 @@ func main(){
 	config_path, _ := parseCli()
 	t := TelegramBot{}
 	t.LoadConfig(config_path)
+	RunCron(&t)
 	t.Serve()
 }
 

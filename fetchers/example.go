@@ -1,40 +1,15 @@
-package main
+package fetchers
 
 import (
 	"net/http"
 	"github.com/dghubble/sling"
-	"github.com/go-xmlpath/xmlpath"
 	"log"
-	"github.com/pkg/errors"
+	"github.com/go-xmlpath/xmlpath"
+	"errors"
 )
-
-const (
-	tIMAGE = iota
-	tVIDEO
-	tTEXT
-	tERROR
-)
-
-type ReplyMessage struct{
-	resources interface{}
-	t int
-}
-
-type Fetcher interface{
-	Init()
-	Get() ReplyMessage
-}
-
-func CreateFetcher(fetcher Fetcher) *Fetcher{
-	fetcher.Init()
-	return &fetcher
-}
-
 
 type ExampleFetcher struct{
-	UA string
-	sling *sling.Sling
-	client http.Client
+	BaseFetcher
 }
 
 func (f *ExampleFetcher)Init(){
@@ -44,23 +19,14 @@ func (f *ExampleFetcher)Init(){
 }
 func (f *ExampleFetcher)Get() ReplyMessage{
 	page_url := "https://www.v2ex.com/i/R7yApIA5.jpeg"
-	request, err := f.sling.Get(page_url).Request()
-	if err != nil{
-		log.Fatal("Cannot create request", err)
-		return ReplyMessage{err, tERROR}
-	}
-	response, err := f.client.Do(request)
-	if err != nil{
-		log.Fatal("Cannot do request", err)
-		return ReplyMessage{err, tERROR}
-	}
+	response, err := f.HTTPGet(page_url)
 	img_url, err := f.parse_img_page(response)
 	if err != nil{
 		log.Fatal("Cannot do parse", err)
-		return ReplyMessage{err, tERROR}
+		return ReplyMessage{err, TERROR}
 	}
 	log.Println("Image url get", img_url)
-	return ReplyMessage{img_url, tIMAGE}
+	return ReplyMessage{img_url, TIMAGE}
 }
 func (f *ExampleFetcher)parse_img_page(resp *http.Response) (string, error){
 	path := xmlpath.MustCompile("//input[@class='sls']/@value")
@@ -78,3 +44,4 @@ func (f *ExampleFetcher)parse_img_page(resp *http.Response) (string, error){
 	}
 	return "", errors.New("Unable to parse html.")
 }
+

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"time"
 	"github.com/pkg/errors"
+	f "./fetchers"
 )
 
 type TelegramBot struct {
@@ -42,16 +43,16 @@ func (TGBOT *TelegramBot) Serve(){
 	TGBOT.bot.Start()
 }
 
-func (TGBOT *TelegramBot)Send(to tb.Recipient, message ReplyMessage) error{
-	switch message.t{
-	case tERROR:
-		err, ok := message.resources.(error)
+func (TGBOT *TelegramBot)Send(to tb.Recipient, message f.ReplyMessage) error{
+	switch message.T{
+	case f.TERROR:
+		err, ok := message.Resources.(error)
 		if ok{
 			return err
 		}
 		return errors.New("[Unknown error] cannot convert types")
-	case tIMAGE:
-		switch v := message.resources.(type){
+	case f.TIMAGE:
+		switch v := message.Resources.(type){
 		case string:
 			if _, err := TGBOT.bot.Send(to, &tb.Photo{File: tb.FromURL(v)}); err != nil{
 				log.Println("Sent image with URL ", v)
@@ -62,8 +63,8 @@ func (TGBOT *TelegramBot)Send(to tb.Recipient, message ReplyMessage) error{
 		default:
 			log.Println("Unable to convert image")
 		}
-	case tTEXT:
-		text, ok := message.resources.(string)
+	case f.TTEXT:
+		text, ok := message.Resources.(string)
 		if ok{
 			if _, err := TGBOT.bot.Send(to, text); err!=nil{
 				log.Println("Sent text ", text)
@@ -74,8 +75,8 @@ func (TGBOT *TelegramBot)Send(to tb.Recipient, message ReplyMessage) error{
 		}else {
 			return errors.New("[Unknown error] cannot convert types")
 		}
-	case tVIDEO:
-		switch v := message.resources.(type){
+	case f.TVIDEO:
+		switch v := message.Resources.(type){
 		case string:
 			if _, err := TGBOT.bot.Send(to, &tb.Video{File: tb.FromURL(v)}); err != nil{
 				log.Println("Sent video with URL ", v)
