@@ -2,7 +2,7 @@ package main
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
-	"./fetchers"
+	"github.com/ihciah/tg_channel_bot/fetchers"
 )
 
 func (TGBOT *TelegramBot) RegisterHandler(){

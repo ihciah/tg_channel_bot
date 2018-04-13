@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"time"
 	"github.com/pkg/errors"
-	f "./fetchers"
+	f "github.com/ihciah/tg_channel_bot/fetchers"
 )
 
 type TelegramBot struct {
