@@ -5,11 +5,10 @@ import (
 	"log"
 )
 
-type CronConfig struct{
-
+type CronConfig struct {
 }
 
-func RunCron(TGBOT *TelegramBot){
+func RunCron(TGBOT *TelegramBot) {
 	c := cron.New()
 	c.AddFunc("* * * * *", func() {
 		log.Println("test task")

@@ -2,7 +2,7 @@ package main
 
 import "flag"
 
-func parseCli() (string, bool){
+func parseCli() (string, bool) {
 	var config_file string
 	var verbose bool
 	flag.BoolVar(&verbose, "v", true, "verbose mode")
@@ -11,11 +11,10 @@ func parseCli() (string, bool){
 	return config_file, verbose
 }
 
-func main(){
+func main() {
 	config_path, _ := parseCli()
 	t := TelegramBot{}
 	t.LoadConfig(config_path)
 	RunCron(&t)
 	t.Serve()
 }
-
