@@ -8,12 +8,15 @@ import (
 	"io/ioutil"
 	"log"
 	"time"
+	"github.com/patrickmn/go-cache"
 )
 
 type TelegramBot struct {
-	bot     *tb.Bot
+	Bot      *tb.Bot
+	Database cache.Cache
 	Token   string `json:"token"`
 	Timeout int    `json:"timeout"`
+	DatabasePath string `json:"database"`
 }
 
 func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
@@ -26,21 +29,22 @@ func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
 		log.Fatal("[Cannot parse telegram config]", err)
 		return err
 	}
-	TGBOT.bot, err = tb.NewBot(tb.Settings{
+	TGBOT.Bot, err = tb.NewBot(tb.Settings{
 		Token:  TGBOT.Token,
 		Poller: &tb.LongPoller{Timeout: time.Duration(TGBOT.Timeout) * time.Second},
 	})
 	if err != nil {
-		log.Fatal("[Cannot initialize telegram bot]", err)
+		log.Fatal("[Cannot initialize telegram Bot]", err)
 		return err
 	}
+
 	log.Printf("[Bot initialized]Token: %s\nTimeout: %d\n", TGBOT.Token, TGBOT.Timeout)
 	return
 }
 
 func (TGBOT *TelegramBot) Serve() {
 	TGBOT.RegisterHandler()
-	TGBOT.bot.Start()
+	TGBOT.Bot.Start()
 }
 
 func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
@@ -54,7 +58,7 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 	case f.TIMAGE:
 		switch v := message.Resources.(type) {
 		case string:
-			if _, err := TGBOT.bot.Send(to, &tb.Photo{File: tb.FromURL(v)}); err != nil {
+			if _, err := TGBOT.Bot.Send(to, &tb.Photo{File: tb.FromURL(v)}); err != nil {
 				log.Println("Unable to send image with URL ", v)
 				return err
 			} else {
@@ -66,7 +70,7 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 	case f.TTEXT:
 		text, ok := message.Resources.(string)
 		if ok {
-			if _, err := TGBOT.bot.Send(to, text); err != nil {
+			if _, err := TGBOT.Bot.Send(to, text); err != nil {
 				log.Println("Unable to send text")
 				return err
 			} else {
@@ -78,7 +82,7 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 	case f.TVIDEO:
 		switch v := message.Resources.(type) {
 		case string:
-			if _, err := TGBOT.bot.Send(to, &tb.Video{File: tb.FromURL(v)}); err != nil {
+			if _, err := TGBOT.Bot.Send(to, &tb.Video{File: tb.FromURL(v)}); err != nil {
 				log.Println("Unable to send video with URL ", v)
 				return err
 			} else {

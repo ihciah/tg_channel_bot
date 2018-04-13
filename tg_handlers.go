@@ -6,13 +6,15 @@ import (
 )
 
 func (TGBOT *TelegramBot) RegisterHandler() {
-	TGBOT.bot.Handle("hello", TGBOT.handle_helloworld)
-	TGBOT.bot.Handle("example", TGBOT.handle_image_fetcher_example)
-	TGBOT.bot.Handle("v2ex", TGBOT.handle_v2ex)
+	TGBOT.Bot.Handle("/about", TGBOT.handle_about)
+	TGBOT.Bot.Handle("/example", TGBOT.handle_image_fetcher_example)
+	TGBOT.Bot.Handle("/v2ex", TGBOT.handle_v2ex)
 }
 
-func (TGBOT *TelegramBot) handle_helloworld(m *tb.Message) {
-	TGBOT.bot.Send(m.Sender, "Hello world!")
+func (TGBOT *TelegramBot) handle_about(m *tb.Message) {
+	TGBOT.Bot.Send(m.Sender, "This is a Bot designed for syncing message(text/image/video) " +
+		"from given sites to telegram channel by @ihciah.\n"+
+		"Check https://github.com/ihciah/tg_channel_bot for source code and other information.")
 }
 
 func (TGBOT *TelegramBot) handle_image_fetcher_example(m *tb.Message) {
