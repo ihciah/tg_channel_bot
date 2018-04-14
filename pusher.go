@@ -5,10 +5,9 @@ import (
 	"log"
 )
 
-type CronTab struct{
+type CronTab struct {
 	cron *cron.Cron
 }
-
 
 func RunCron(TGBOT *TelegramBot) {
 	c := cron.New()

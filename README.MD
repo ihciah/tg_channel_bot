@@ -10,19 +10,23 @@ Dependences:
 "github.com/robfig/cron"
 "github.com/dghubble/sling"
 "github.com/go-xmlpath/xmlpath"
+"github.com/ChimeraCoder/anaconda"
 ```
 
 
 
-The current configure files are like the following:
 
-```json
-{
-  "token": "YOUR_TELEGRAM_BOT_TOKEN",
-  "timeout": 10
-}
+You can run the program through `./tg_channel_bot -c config.json`. Check `config_example.json` for example of `config.json`.
+
+Tips for users in China Mainland to set socks proxy:
+- Linux:
+```
+export http_proxy=https://127.0.0.1:1080
+export https_proxy=https://127.0.0.1:1080
 ```
 
-You can run the program through `./tg_channel_bot -c config.json`
-
-Check `fetchers/example.go` and `fetchers/v2ex.go` if you want to write your own site crawlers.
+- Windows:
+```
+set http_proxy=https://127.0.0.1:1080
+set https_proxy=https://127.0.0.1:1080
+```

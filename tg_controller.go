@@ -3,20 +3,21 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/boltdb/bolt"
 	f "github.com/ihciah/tg_channel_bot/fetchers"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
 	"log"
 	"time"
-	"github.com/patrickmn/go-cache"
 )
 
 type TelegramBot struct {
-	Bot      *tb.Bot
-	Database cache.Cache
-	Token   string `json:"token"`
-	Timeout int    `json:"timeout"`
-	DatabasePath string `json:"database"`
+	Bot            *tb.Bot
+	Database       *bolt.DB
+	Token          string        `json:"token"`
+	Timeout        int           `json:"timeout"`
+	DatabasePath   string        `json:"database"`
+	FetcherConfigs FetcherConfig `json:"fetcher_config"`
 }
 
 func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
@@ -37,7 +38,7 @@ func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
 		log.Fatal("[Cannot initialize telegram Bot]", err)
 		return err
 	}
-
+	TGBOT.Database, err = bolt.Open(TGBOT.DatabasePath, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	log.Printf("[Bot initialized]Token: %s\nTimeout: %d\n", TGBOT.Token, TGBOT.Timeout)
 	return
 }
