@@ -1,7 +1,7 @@
 package fetchers
 
 import (
-	"github.com/boltdb/bolt"
+	"github.com/asdine/storm"
 	"github.com/dghubble/sling"
 	"log"
 	"net/http"
@@ -10,33 +10,37 @@ import (
 const (
 	TIMAGE = iota
 	TVIDEO
-	TTEXT
-	TERROR
 )
 
+type Resource struct{
+	URL string
+	T int
+}
+
 type ReplyMessage struct {
-	Resources interface{}
-	T         int
+	Resources []Resource
+	Caption string
+	Err error
 }
 
 type Fetcher interface {
-	Init(*bolt.DB)
-	Get() ReplyMessage
-	GetPush(int) []ReplyMessage
+	Init(*storm.DB) error // Initializing
+	GetPush(string, []string) []ReplyMessage
+	GetPushAtLeastOne(string, []string) []ReplyMessage
 }
 
 type BaseFetcher struct {
 	UA     string
-	DB     *bolt.DB
+	DB     storm.Node
 	sling  *sling.Sling
 	client http.Client
 }
 
-func (f *BaseFetcher) Init(db *bolt.DB) {
-	f.DB = db
+func (f *BaseFetcher) Init(db *storm.DB) error {
 	f.UA = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
 	f.client = http.Client{}
 	f.sling = sling.New().Client(&f.client).Set("User-Agent", f.UA)
+	return nil
 }
 
 func (f *BaseFetcher) HTTPGet(url string) (*http.Response, error) {
@@ -54,10 +58,10 @@ func (f *BaseFetcher) HTTPGet(url string) (*http.Response, error) {
 	return response, nil
 }
 
-func (f *BaseFetcher) Get() ReplyMessage {
-	return ReplyMessage{}
+func (f *BaseFetcher) GetPush(string, []string) []ReplyMessage {
+	return []ReplyMessage{}
 }
 
-func (f *BaseFetcher) GetPush(userid int) []ReplyMessage {
-	return make([]ReplyMessage, 0, 0)
+func (f *BaseFetcher) GetPushAtLeastOne(string, []string) []ReplyMessage {
+	return []ReplyMessage{}
 }

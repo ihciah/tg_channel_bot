@@ -1,15 +1,13 @@
 {
   "token": "YOUR_TELEGRAM_BOT_TOKEN",
-  "timeout": 10,
+  "timeout": 60,
   "database": "PATH_TO_DATABASE_FILE",
   "fetcher_config": {
     "twitter": {
       "access_token": "YOUR_TWITTER_ACCESS_TOKEN",
       "access_token_secret": "YOUR_TWITTER_ACCESS_TOKEN_SECRET",
       "consumer_key": "YOUR_TWITTER_CONSUMER_KEY",
-      "consumer_secret": "YOUR_TWITTER_CONSUMER_SECRET",
-      "get_user_id": "cchaai(TWITTER ID TO FETCH)",
-      "get_count": 30
+      "consumer_secret": "YOUR_TWITTER_CONSUMER_SECRET"
     }
   }
 }

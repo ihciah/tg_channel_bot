@@ -1,23 +1,27 @@
 package main
 
 import (
+	f "./fetchers"
 	"encoding/json"
 	"errors"
-	"github.com/boltdb/bolt"
-	f "github.com/ihciah/tg_channel_bot/fetchers"
-	tb "gopkg.in/tucnak/telebot.v2"
+	"github.com/coreos/bbolt"
+	"github.com/asdine/storm"
+	tb "github.com/ihciah/telebot"
 	"io/ioutil"
 	"log"
 	"time"
 )
 
+const MaxAlbumSize=10
+
 type TelegramBot struct {
 	Bot            *tb.Bot
-	Database       *bolt.DB
+	Database       *storm.DB
 	Token          string        `json:"token"`
 	Timeout        int           `json:"timeout"`
 	DatabasePath   string        `json:"database"`
 	FetcherConfigs FetcherConfig `json:"fetcher_config"`
+	Channels       *[]*Channel
 }
 
 func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
@@ -33,12 +37,14 @@ func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
 	TGBOT.Bot, err = tb.NewBot(tb.Settings{
 		Token:  TGBOT.Token,
 		Poller: &tb.LongPoller{Timeout: time.Duration(TGBOT.Timeout) * time.Second},
+		HTTPTimeout: TGBOT.Timeout,
 	})
 	if err != nil {
 		log.Fatal("[Cannot initialize telegram Bot]", err)
 		return err
 	}
-	TGBOT.Database, err = bolt.Open(TGBOT.DatabasePath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+
+	TGBOT.Database, err = storm.Open(TGBOT.DatabasePath, storm.BoltOptions(0600, &bolt.Options{Timeout: 1 * time.Second}))
 	log.Printf("[Bot initialized]Token: %s\nTimeout: %d\n", TGBOT.Token, TGBOT.Timeout)
 	return
 }
@@ -49,49 +55,67 @@ func (TGBOT *TelegramBot) Serve() {
 }
 
 func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
-	switch message.T {
-	case f.TERROR:
-		err, ok := message.Resources.(error)
-		if ok {
-			return err
-		}
-		return errors.New("[Unknown error] cannot convert types")
-	case f.TIMAGE:
-		switch v := message.Resources.(type) {
-		case string:
-			if _, err := TGBOT.Bot.Send(to, &tb.Photo{File: tb.FromURL(v)}); err != nil {
-				log.Println("Unable to send image with URL ", v)
-				return err
-			} else {
-				log.Println("Sent image with URL ", v)
-			}
-		default:
-			log.Println("Unable to convert image")
-		}
-	case f.TTEXT:
-		text, ok := message.Resources.(string)
-		if ok {
-			if _, err := TGBOT.Bot.Send(to, text); err != nil {
-				log.Println("Unable to send text")
-				return err
-			} else {
-				log.Println("Sent text ", text)
-			}
+	if message.Err != nil {
+		return message.Err
+	}
+
+	if len(message.Resources) == 1 {
+		var err error
+		var mediaFile tb.InputMedia
+		if message.Resources[0].T == f.TIMAGE {
+			mediaFile = &tb.Photo{File: tb.FromURL(message.Resources[0].URL), Caption: message.Caption}
+		} else if message.Resources[0].T == f.TVIDEO {
+			mediaFile = &tb.Video{File: tb.FromURL(message.Resources[0].URL), Caption: message.Caption}
 		} else {
-			return errors.New("[Unknown error] cannot convert types")
+			err = errors.New("Undefined message type.")
 		}
-	case f.TVIDEO:
-		switch v := message.Resources.(type) {
-		case string:
-			if _, err := TGBOT.Bot.Send(to, &tb.Video{File: tb.FromURL(v)}); err != nil {
-				log.Println("Unable to send video with URL ", v)
-				return err
-			} else {
-				log.Println("Sent video with URL ", v)
-			}
-		default:
-			log.Println("Unable to convert video")
+		_, err = TGBOT.Bot.Send(to, mediaFile)
+		return err
+	}
+
+	if len(message.Resources) == 0 {
+		if _, err := TGBOT.Bot.Send(to, message.Caption); err != nil {
+			log.Println("Unable to send text:", message.Caption)
+			return err
+		} else {
+			log.Println("Sent text:", message.Caption)
 		}
 	}
-	return nil
+
+	var ret error
+	for i:= 0; i<len(message.Resources);i+=MaxAlbumSize{
+		end := i + MaxAlbumSize
+		if end > len(message.Resources){
+			end = len(message.Resources)
+		}
+		mediaFiles := make(tb.Album, 0, MaxAlbumSize)
+		for _, r := range message.Resources[i:end] {
+			if r.T == f.TIMAGE {
+				mediaFiles = append(mediaFiles, &tb.Photo{File: tb.FromURL(r.URL),Caption:message.Caption})
+			} else if r.T == f.TVIDEO {
+				mediaFiles = append(mediaFiles, &tb.Video{File: tb.FromURL(r.URL),Caption:message.Caption})
+			} else {
+				continue
+			}
+		}
+		if _, err := TGBOT.Bot.SendAlbum(to, mediaFiles); err != nil {
+			log.Println("Unable to send album", err)
+			ret = err
+		} else {
+			log.Println("Sent album")
+		}
+	}
+	return ret
+}
+
+func (TGBOT *TelegramBot) SendAll(to tb.Recipient, messages []f.ReplyMessage) (err error) {
+	err = nil
+	for _, msg := range messages{
+		//e := TGBOT.Send(to, msg)
+		//if e != nil{
+		//	err = e
+		//}
+		go TGBOT.Send(to, msg)
+	}
+	return
 }

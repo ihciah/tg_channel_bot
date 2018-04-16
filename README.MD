@@ -5,12 +5,13 @@ A telegram bot designed for syncing text/image/video from given sites to telegra
 Dependences:
 
 ```
-"gopkg.in/tucnak/telebot.v2"
+"github.com/ihciah/telebot"
 "github.com/ihciah/tg_channel_bot/fetchers"
-"github.com/robfig/cron"
 "github.com/dghubble/sling"
 "github.com/go-xmlpath/xmlpath"
 "github.com/ChimeraCoder/anaconda"
+"github.com/asdine/storm"
+"github.com/coreos/bbolt"
 ```
 
 

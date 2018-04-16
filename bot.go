@@ -32,7 +32,7 @@ func main() {
 		log.Fatal("Cannot load config", err)
 		return
 	}
-	RunCron(&t)
+	RunPusher(&t)
 	go ListenExit(&t)
 	t.Serve()
 }

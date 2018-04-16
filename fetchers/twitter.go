@@ -1,13 +1,10 @@
 package fetchers
 
 import (
-	"fmt"
 	"github.com/ChimeraCoder/anaconda"
-	"github.com/boltdb/bolt"
-	"log"
+	"github.com/asdine/storm"
 	"net/url"
-	"strconv"
-	"strings"
+	"time"
 )
 
 type TwitterFetcher struct {
@@ -17,34 +14,74 @@ type TwitterFetcher struct {
 	AccessToeknSecret string `json:"access_token_secret"`
 	ConsumerKey       string `json:"consumer_key"`
 	ConsumerSecret    string `json:"consumer_secret"`
-	GetUser           string `json:"get_user_id"`
-	GetCount          int    `json:"get_count"`
 }
 
-func (f *TwitterFetcher) Init(db *bolt.DB) {
-	f.DB = db
-	f.api = anaconda.NewTwitterApiWithCredentials("340822756-SxzEX4nN4I5OMEse2DalE5LPXH44nkv7eiABKSWg",
-		"GeyR5WA05HemvAryOu2nuyNym4Zgbz9SCnwozKSQ0JMXc",
-		"ZaRyEEFjuft0iXZDBmydsdbCX",
-		"ApGOwDwC2Mf7tCQ1OS9rOBe4wap1ZTNq5l7nV0ajJTDp2CKh9I")
+const (
+	MaxTweetCount = "10"
+)
+
+func (f *TwitterFetcher) Init(db *storm.DB) (err error) {
+	f.DB = db.From("twitter")
+	f.api = anaconda.NewTwitterApiWithCredentials(f.AccessToken, f.AccessToeknSecret, f.ConsumerKey, f.ConsumerSecret)
+	return
 }
 
-func (f *TwitterFetcher) Get() ReplyMessage {
+func (f *TwitterFetcher) GetUserTimeline(user string, time int64) ([]ReplyMessage, error){
 	v := url.Values{}
-	v.Set("count", strconv.Itoa(f.GetCount))
-	v.Set("screen_name", f.GetUser)
+	v.Set("count", MaxTweetCount)
+	v.Set("screen_name", user)
 	results, err := f.api.GetUserTimeline(v)
-	if err != nil {
-		log.Fatal(err)
-		return ReplyMessage{err, TERROR}
+	if err != nil{
+		return []ReplyMessage{}, err
 	}
-	tweets := make([]string, 0, len(results))
-	for _, tweet := range results {
-		tweets = append(tweets, fmt.Sprintf("%s(%s): \n%s", tweet.User.Name, tweet.User.ScreenName, tweet.FullText))
+	ret := make([]ReplyMessage, 0, len(results))
+	for _, tweet := range results{
+		t, err := tweet.CreatedAtTime()
+		if err != nil{
+			continue
+		}
+		tweet_time := t.Unix()
+		if tweet_time < time{
+			break
+		}
+		resources := make([]Resource, 0, len(tweet.ExtendedEntities.Media))
+		for _, media := range tweet.ExtendedEntities.Media{
+			var rType int
+			switch media.Type{
+			case "photo":
+				rType = TIMAGE
+			case "video":
+				rType = TVIDEO
+			}
+			resources = append(resources, Resource{media.Media_url_https, rType})
+		}
+		ret = append(ret, ReplyMessage{resources, tweet.FullText, nil})
 	}
-	return ReplyMessage{strings.Join(tweets, "\n"), TTEXT}
+	return ret, nil
 }
 
-func (f *TwitterFetcher) GetPush() []ReplyMessage {
-	return make([]ReplyMessage, 0, 0)
+func (f *TwitterFetcher) GetPush(userid string, followings []string) []ReplyMessage {
+	var last_update int64
+	if err := f.DB.Get("last_update", userid, &last_update); err != nil{
+		last_update = 0
+	}
+	ret := make([]ReplyMessage, 0, 0)
+	for _, follow := range followings{
+		single, err := f.GetUserTimeline(follow, last_update)
+		if err == nil{
+			ret = append(ret, single...)
+		}
+	}
+	if len(ret) != 0{
+		f.DB.Set("last_update", userid, time.Now().Unix())
+	}
+	return ret
+}
+
+func (f *TwitterFetcher) GetPushAtLeastOne(userid string, following []string) (ret []ReplyMessage) {
+	ret = f.GetPush(userid, following)
+	if len(ret) == 0{
+		ret = []ReplyMessage{{Caption: "No new updates."}}
+	}
+	return
 }

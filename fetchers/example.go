@@ -11,17 +11,19 @@ type ExampleFetcher struct {
 	BaseFetcher
 }
 
-func (f *ExampleFetcher) Get() ReplyMessage {
+func (f *ExampleFetcher) GetPushAtLeastOne(string, []string) []ReplyMessage {
 	page_url := "https://www.v2ex.com/i/R7yApIA5.jpeg"
 	response, err := f.HTTPGet(page_url)
 	img_url, err := f.parse_img_page(response)
 	if err != nil {
 		log.Fatal("Cannot do parse", err)
-		return ReplyMessage{err, TERROR}
+		return []ReplyMessage{{Err:err}}
 	}
 	log.Println("Image url get", img_url)
-	return ReplyMessage{img_url, TIMAGE}
+	reply := ReplyMessage{[]Resource{{URL:img_url, T:TIMAGE}}, "", nil}
+	return []ReplyMessage{reply}
 }
+
 func (f *ExampleFetcher) parse_img_page(resp *http.Response) (string, error) {
 	path := xmlpath.MustCompile("//input[@class='sls']/@value")
 	root, err := xmlpath.ParseHTML(resp.Body)
