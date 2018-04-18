@@ -63,6 +63,9 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 	}
 
 	if len(message.Resources) == 1 {
+		if len(message.Caption) >= 190{
+			message.Caption = message.Caption[:191]
+		}
 		var err error
 		var mediaFile tb.InputMedia
 		if message.Resources[0].T == f.TIMAGE {
