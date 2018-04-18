@@ -4,10 +4,10 @@ import (
 	"errors"
 	"github.com/asdine/storm"
 	"github.com/dghubble/sling"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-	"io/ioutil"
 )
 
 const (
@@ -43,7 +43,7 @@ type BaseFetcher struct {
 // Initialize
 func (f *BaseFetcher) Init(db *storm.DB) error {
 	f.UA = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
-	f.client = http.Client{Timeout: time.Duration(30)* time.Second}
+	f.client = http.Client{Timeout: time.Duration(30) * time.Second}
 	return nil
 }
 

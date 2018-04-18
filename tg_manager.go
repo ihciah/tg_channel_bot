@@ -65,18 +65,18 @@ func (TGBOT *TelegramBot) h_user(p string, m *tb.Message, is_add bool) string {
 	return "No such channel."
 }
 
-func (TGBOT *TelegramBot) h_addadmin(p string, m *tb.Message) string{
+func (TGBOT *TelegramBot) h_addadmin(p string, m *tb.Message) string {
 	return TGBOT.h_admin(p, m, true)
 }
 
-func (TGBOT *TelegramBot) h_deladmin(p string, m *tb.Message) string{
+func (TGBOT *TelegramBot) h_deladmin(p string, m *tb.Message) string {
 	return TGBOT.h_admin(p, m, false)
 }
 
-func (TGBOT *TelegramBot) h_listadmin(p string, m *tb.Message) string{
+func (TGBOT *TelegramBot) h_listadmin(p string, m *tb.Message) string {
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p {
-			if len(*v.AdminUserIDs) == 0{
+			if len(*v.AdminUserIDs) == 0 {
 				return "No admin."
 			}
 			return fmt.Sprintf("Admins for %s:\n%s", v.ID, strings.Join(*v.AdminUserIDs, "\n"))

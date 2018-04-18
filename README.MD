@@ -1,19 +1,8 @@
 # tg_channel_bot
 
+# [中文详细说明 戳这！](https://github.com/ihciah/tg_channel_bot/wiki/Telegram-Channel-Bot-使用指南)
+
 A telegram bot designed for syncing text/image/video from given sites to telegram channel.
-
-Dependences:
-
-```
-"github.com/ihciah/telebot"
-"github.com/ihciah/tg_channel_bot/fetchers"
-"github.com/dghubble/sling"
-"github.com/go-xmlpath/xmlpath"
-"github.com/ChimeraCoder/anaconda"
-"github.com/asdine/storm"
-"github.com/coreos/bbolt"
-```
-
 
 
 

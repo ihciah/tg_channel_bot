@@ -1,12 +1,12 @@
 package main
 
 import (
-	f "./fetchers"
 	"encoding/json"
 	"errors"
 	"github.com/asdine/storm"
 	"github.com/coreos/bbolt"
 	tb "github.com/ihciah/telebot"
+	f "github.com/ihciah/tg_channel_bot/fetchers"
 	"io/ioutil"
 	"log"
 	"time"

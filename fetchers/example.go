@@ -1,10 +1,10 @@
 package fetchers
 
 import (
+	"bytes"
 	"errors"
 	"github.com/go-xmlpath/xmlpath"
 	"log"
-	"bytes"
 )
 
 type ExampleFetcher struct {

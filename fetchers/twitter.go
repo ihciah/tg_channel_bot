@@ -55,12 +55,12 @@ func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessag
 				rURL = media.Media_url_https
 			case "video":
 				rType = TVIDEO
-				if len(media.VideoInfo.Variants) == 0{
+				if len(media.VideoInfo.Variants) == 0 {
 					continue
 				}
 				rURL = media.VideoInfo.Variants[0].Url
 			}
-			if rURL != ""{
+			if rURL != "" {
 				resources = append(resources, Resource{rURL, rType})
 			}
 		}

@@ -1,12 +1,12 @@
 package fetchers
 
 import (
-	"github.com/asdine/storm"
-	"time"
-	"errors"
-	"log"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/asdine/storm"
+	"log"
+	"time"
 )
 
 type TumblrPosts struct {
@@ -62,11 +62,11 @@ type TumblrPosts struct {
 			} `json:"reblog"`
 			Trail []struct {
 				Blog struct {
-					Name   string `json:"name"`
-					Active bool   `json:"active"`
-					ShareLikes     bool `json:"share_likes"`
-					ShareFollowing bool `json:"share_following"`
-					CanBeFollowed  bool `json:"can_be_followed"`
+					Name           string `json:"name"`
+					Active         bool   `json:"active"`
+					ShareLikes     bool   `json:"share_likes"`
+					ShareFollowing bool   `json:"share_following"`
+					CanBeFollowed  bool   `json:"can_be_followed"`
 				} `json:"blog"`
 				ContentRaw    string `json:"content_raw"`
 				Content       string `json:"content"`
@@ -112,7 +112,7 @@ type TumblrPosts struct {
 
 type TumblrFetcher struct {
 	BaseFetcher
-	OAuthConsumerKey string  `json:"oauth_consumer_key"`
+	OAuthConsumerKey string `json:"oauth_consumer_key"`
 }
 
 func (f *TumblrFetcher) Init(db *storm.DB) (err error) {
@@ -120,8 +120,8 @@ func (f *TumblrFetcher) Init(db *storm.DB) (err error) {
 	return
 }
 
-func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage, error){
-	if f.OAuthConsumerKey == ""{
+func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage, error) {
+	if f.OAuthConsumerKey == "" {
 		return []ReplyMessage{}, errors.New("Need API key.")
 	}
 	api_url := fmt.Sprintf("https://api.tumblr.com/v2/blog/%s.tumblr.com/posts?api_key=%s", user, f.OAuthConsumerKey)
@@ -135,23 +135,23 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 		log.Println("Unable to load json", err)
 		return []ReplyMessage{}, err
 	}
-	if posts.Meta.Status != 200{
+	if posts.Meta.Status != 200 {
 		log.Println("Tumblr return err. Code", posts.Meta.Status)
 		return []ReplyMessage{}, errors.New("Tumblr api error.")
 	}
 	ret := make([]ReplyMessage, 0, len(posts.Response.Posts))
-	for _, p := range posts.Response.Posts{
-		if p.Type != "photo" && p.Type != "video"{
+	for _, p := range posts.Response.Posts {
+		if p.Type != "photo" && p.Type != "video" {
 			continue
 		}
-		if int64(p.Timestamp) < time{
+		if int64(p.Timestamp) < time {
 			break
 		}
 		res := make([]Resource, 0, len(p.Photos))
-		for _, photo := range p.Photos{
+		for _, photo := range p.Photos {
 			res = append(res, Resource{photo.OriginalSize.URL, TIMAGE})
 		}
-		if p.VideoURL != ""{
+		if p.VideoURL != "" {
 			res = append(res, Resource{p.VideoURL, TVIDEO})
 		}
 		if len(res) > 0 {

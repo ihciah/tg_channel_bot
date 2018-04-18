@@ -1,8 +1,8 @@
 package main
 
 import (
-	f "./fetchers"
 	tb "github.com/ihciah/telebot"
+	f "github.com/ihciah/tg_channel_bot/fetchers"
 	"log"
 	"strconv"
 	"strings"
@@ -35,11 +35,8 @@ func (TGBOT *TelegramBot) CreateModule(module_id int) f.Fetcher {
 
 func (TGBOT *TelegramBot) RegisterHandler() {
 	TGBOT.Bot.Handle("/about", TGBOT.handle_about)
-	TGBOT.Bot.Handle("/example", TGBOT.handle_example_fetcher_example)
-	TGBOT.Bot.Handle("/v2ex", TGBOT.handle_v2ex)
-	TGBOT.Bot.Handle("/twitter", TGBOT.handle_twitter)
-	TGBOT.Bot.Handle("/tmedia", TGBOT.handle_twitter_media_test_only)            // For test only
-	TGBOT.Bot.Handle("/twitter_channel", TGBOT.handle_twitter_channel_test_only) // For test only
+	//TGBOT.Bot.Handle("/example", TGBOT.handle_example_fetcher_example)
+	//TGBOT.Bot.Handle("/v2ex", TGBOT.handle_v2ex)
 	TGBOT.Bot.Handle(tb.OnText, TGBOT.handle_controller)
 }
 

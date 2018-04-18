@@ -1,14 +1,17 @@
 {
   "token": "YOUR_TELEGRAM_BOT_TOKEN",
-  "timeout": 60,
+  "timeout": 120,
   "database": "PATH_TO_DATABASE_FILE",
-  "admins": ["ADMIN_USER_ID_WITHOUT@"],
+  "admins": ["SUPERADMIN_USER_ID_WITHOUT@"],
   "fetcher_config": {
     "twitter": {
       "access_token": "YOUR_TWITTER_ACCESS_TOKEN",
       "access_token_secret": "YOUR_TWITTER_ACCESS_TOKEN_SECRET",
       "consumer_key": "YOUR_TWITTER_CONSUMER_KEY",
       "consumer_secret": "YOUR_TWITTER_CONSUMER_SECRET"
+    },
+    "tumblr": {
+      "oauth_consumer_key": "YOUR_TUMBLR_OAUTH_CONSUMER_KEY"
     }
   }
 }
