@@ -42,22 +42,22 @@ type V2EXHot []struct {
 	LastTouched  int `json:"last_touched"`
 }
 
-func (f *V2EXFetcher) GetPushAtLeastOne(string, []string) []ReplyMessage {
+func (f *V2EXFetcher) GetPush(string, []string) []ReplyMessage {
 	api_url := "https://www.v2ex.com/api/topics/hot.json"
 	resp, err := f.HTTPGet(api_url)
 	if err != nil {
-		log.Fatal("Unable to crawl v2ex api", err)
-		return []ReplyMessage{{Err:err}}
+		log.Println("Unable to crawl v2ex api", err)
+		return []ReplyMessage{{Err: err}}
 	}
 	resp_content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("Unable to read response", err)
-		return []ReplyMessage{{Err:err}}
+		log.Println("Unable to read response", err)
+		return []ReplyMessage{{Err: err}}
 	}
 	hot := V2EXHot{}
 	if err := json.Unmarshal(resp_content, &hot); err != nil {
-		log.Fatal("Unable to load json", err)
-		return []ReplyMessage{{Err:err}}
+		log.Println("Unable to load json", err)
+		return []ReplyMessage{{Err: err}}
 	}
 	titles := make([]string, 0, 10)
 	for _, v := range hot {

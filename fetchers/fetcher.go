@@ -1,6 +1,7 @@
 package fetchers
 
 import (
+	"errors"
 	"github.com/asdine/storm"
 	"github.com/dghubble/sling"
 	"log"
@@ -12,21 +13,22 @@ const (
 	TVIDEO
 )
 
-type Resource struct{
+type Resource struct {
 	URL string
-	T int
+	T   int
 }
 
 type ReplyMessage struct {
 	Resources []Resource
-	Caption string
-	Err error
+	Caption   string
+	Err       error
 }
 
 type Fetcher interface {
-	Init(*storm.DB) error // Initializing
-	GetPush(string, []string) []ReplyMessage
-	GetPushAtLeastOne(string, []string) []ReplyMessage
+	Init(*storm.DB) error                              // Initializing
+	GetPush(string, []string) []ReplyMessage           // For channel message
+	GetPushAtLeastOne(string, []string) []ReplyMessage // For user message
+	GoBack(string, int64) error                        // Set last update time to N seconds before
 }
 
 type BaseFetcher struct {
@@ -47,21 +49,29 @@ func (f *BaseFetcher) HTTPGet(url string) (*http.Response, error) {
 	var resp *http.Response
 	request, err := f.sling.Get(url).Request()
 	if err != nil {
-		log.Fatal("Cannot create request", err)
+		log.Println("Cannot create request", err)
 		return resp, err
 	}
 	response, err := f.client.Do(request)
 	if err != nil {
-		log.Fatal("Cannot do request", err)
+		log.Println("Cannot do request", err)
 		return resp, err
 	}
 	return response, nil
 }
 
 func (f *BaseFetcher) GetPush(string, []string) []ReplyMessage {
-	return []ReplyMessage{}
+	return []ReplyMessage{{Caption: "Unsupported. You should define GetPush function first."}}
 }
 
-func (f *BaseFetcher) GetPushAtLeastOne(string, []string) []ReplyMessage {
-	return []ReplyMessage{}
+func (f *BaseFetcher) GetPushAtLeastOne(userid string, following []string) (ret []ReplyMessage) {
+	ret = f.GetPush(userid, following)
+	if len(ret) == 0 {
+		ret = []ReplyMessage{{Caption: "No new updates."}}
+	}
+	return
+}
+
+func (f *BaseFetcher) GoBack(string, int64) error {
+	return errors.New("Time machine unsupported for this site.")
 }

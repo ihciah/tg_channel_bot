@@ -28,10 +28,7 @@ func ListenExit(TGBOT *TelegramBot) {
 func main() {
 	config_path, _ := parseCli()
 	t := TelegramBot{}
-	if err := t.LoadConfig(config_path); err != nil {
-		log.Fatal("Cannot load config", err)
-		return
-	}
+	t.LoadConfig(config_path)
 	RunPusher(&t)
 	go ListenExit(&t)
 	t.Serve()

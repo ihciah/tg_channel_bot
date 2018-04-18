@@ -1,6 +1,7 @@
 package fetchers
 
 import (
+	"errors"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/asdine/storm"
 	"net/url"
@@ -26,28 +27,28 @@ func (f *TwitterFetcher) Init(db *storm.DB) (err error) {
 	return
 }
 
-func (f *TwitterFetcher) GetUserTimeline(user string, time int64) ([]ReplyMessage, error){
+func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage, error) {
 	v := url.Values{}
 	v.Set("count", MaxTweetCount)
 	v.Set("screen_name", user)
 	results, err := f.api.GetUserTimeline(v)
-	if err != nil{
+	if err != nil {
 		return []ReplyMessage{}, err
 	}
 	ret := make([]ReplyMessage, 0, len(results))
-	for _, tweet := range results{
+	for _, tweet := range results {
 		t, err := tweet.CreatedAtTime()
-		if err != nil{
+		if err != nil {
 			continue
 		}
 		tweet_time := t.Unix()
-		if tweet_time < time{
+		if tweet_time < time {
 			break
 		}
 		resources := make([]Resource, 0, len(tweet.ExtendedEntities.Media))
-		for _, media := range tweet.ExtendedEntities.Media{
+		for _, media := range tweet.ExtendedEntities.Media {
 			var rType int
-			switch media.Type{
+			switch media.Type {
 			case "photo":
 				rType = TIMAGE
 			case "video":
@@ -62,26 +63,26 @@ func (f *TwitterFetcher) GetUserTimeline(user string, time int64) ([]ReplyMessag
 
 func (f *TwitterFetcher) GetPush(userid string, followings []string) []ReplyMessage {
 	var last_update int64
-	if err := f.DB.Get("last_update", userid, &last_update); err != nil{
+	if err := f.DB.Get("last_update", userid, &last_update); err != nil {
 		last_update = 0
 	}
 	ret := make([]ReplyMessage, 0, 0)
-	for _, follow := range followings{
-		single, err := f.GetUserTimeline(follow, last_update)
-		if err == nil{
+	for _, follow := range followings {
+		single, err := f.getUserTimeline(follow, last_update)
+		if err == nil {
 			ret = append(ret, single...)
 		}
 	}
-	if len(ret) != 0{
+	if len(ret) != 0 {
 		f.DB.Set("last_update", userid, time.Now().Unix())
 	}
 	return ret
 }
 
-func (f *TwitterFetcher) GetPushAtLeastOne(userid string, following []string) (ret []ReplyMessage) {
-	ret = f.GetPush(userid, following)
-	if len(ret) == 0{
-		ret = []ReplyMessage{{Caption: "No new updates."}}
+func (f *TwitterFetcher) GoBack(userid string, back int64) error {
+	now := time.Now().Unix()
+	if back > now {
+		return errors.New("Back too long!")
 	}
-	return
+	return f.DB.Set("last_update", userid, now-back)
 }

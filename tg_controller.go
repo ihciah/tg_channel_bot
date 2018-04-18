@@ -4,15 +4,15 @@ import (
 	f "./fetchers"
 	"encoding/json"
 	"errors"
-	"github.com/coreos/bbolt"
 	"github.com/asdine/storm"
+	"github.com/coreos/bbolt"
 	tb "github.com/ihciah/telebot"
 	"io/ioutil"
 	"log"
 	"time"
 )
 
-const MaxAlbumSize=10
+const MaxAlbumSize = 10
 
 type TelegramBot struct {
 	Bot            *tb.Bot
@@ -22,31 +22,34 @@ type TelegramBot struct {
 	DatabasePath   string        `json:"database"`
 	FetcherConfigs FetcherConfig `json:"fetcher_config"`
 	Channels       *[]*Channel
+	Admins         []string `json:"admins"`
 }
 
-func (TGBOT *TelegramBot) LoadConfig(json_path string) (err error) {
+func (TGBOT *TelegramBot) LoadConfig(json_path string) {
 	data, err := ioutil.ReadFile(json_path)
 	if err != nil {
 		log.Fatal("[Cannot read telegram config]", err)
-		return err
+		return
 	}
 	if err := json.Unmarshal(data, TGBOT); err != nil {
 		log.Fatal("[Cannot parse telegram config]", err)
-		return err
+		return
 	}
 	TGBOT.Bot, err = tb.NewBot(tb.Settings{
-		Token:  TGBOT.Token,
-		Poller: &tb.LongPoller{Timeout: time.Duration(TGBOT.Timeout) * time.Second},
+		Token:       TGBOT.Token,
+		Poller:      &tb.LongPoller{Timeout: time.Duration(TGBOT.Timeout) * time.Second},
 		HTTPTimeout: TGBOT.Timeout,
 	})
 	if err != nil {
 		log.Fatal("[Cannot initialize telegram Bot]", err)
-		return err
+		return
 	}
 
-	TGBOT.Database, err = storm.Open(TGBOT.DatabasePath, storm.BoltOptions(0600, &bolt.Options{Timeout: 1 * time.Second}))
+	TGBOT.Database, err = storm.Open(TGBOT.DatabasePath, storm.BoltOptions(0600, &bolt.Options{Timeout: 5 * time.Second}))
+	if err != nil {
+		log.Fatal("[Cannot initialize database]", err)
+	}
 	log.Printf("[Bot initialized]Token: %s\nTimeout: %d\n", TGBOT.Token, TGBOT.Timeout)
-	return
 }
 
 func (TGBOT *TelegramBot) Serve() {
@@ -83,17 +86,17 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 	}
 
 	var ret error
-	for i:= 0; i<len(message.Resources);i+=MaxAlbumSize{
+	for i := 0; i < len(message.Resources); i += MaxAlbumSize {
 		end := i + MaxAlbumSize
-		if end > len(message.Resources){
+		if end > len(message.Resources) {
 			end = len(message.Resources)
 		}
 		mediaFiles := make(tb.Album, 0, MaxAlbumSize)
 		for _, r := range message.Resources[i:end] {
 			if r.T == f.TIMAGE {
-				mediaFiles = append(mediaFiles, &tb.Photo{File: tb.FromURL(r.URL),Caption:message.Caption})
+				mediaFiles = append(mediaFiles, &tb.Photo{File: tb.FromURL(r.URL), Caption: message.Caption})
 			} else if r.T == f.TVIDEO {
-				mediaFiles = append(mediaFiles, &tb.Video{File: tb.FromURL(r.URL),Caption:message.Caption})
+				mediaFiles = append(mediaFiles, &tb.Video{File: tb.FromURL(r.URL), Caption: message.Caption})
 			} else {
 				continue
 			}
@@ -110,7 +113,7 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 
 func (TGBOT *TelegramBot) SendAll(to tb.Recipient, messages []f.ReplyMessage) (err error) {
 	err = nil
-	for _, msg := range messages{
+	for _, msg := range messages {
 		//e := TGBOT.Send(to, msg)
 		//if e != nil{
 		//	err = e
