@@ -25,8 +25,9 @@ func (TGBOT *TelegramBot) h_delchannel(p string, m *tb.Message) string {
 	for i, v := range *TGBOT.Channels {
 		if v.ID == p {
 			go v.Exit()
+			*TGBOT.Channels = append((*TGBOT.Channels)[:i], (*TGBOT.Channels)[i+1:]...)
+			break
 		}
-		*TGBOT.Channels = append((*TGBOT.Channels)[:i], (*TGBOT.Channels)[i+1:]...)
 	}
 	return fmt.Sprintf("Channel %s deleted.", p)
 }
