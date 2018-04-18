@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	f "./fetchers"
 )
 
 const (
@@ -16,7 +17,8 @@ const (
 )
 
 const (
-	DefaultInterval = 30
+	DefaultInterval = 300
+	DefaultMessageQueueSize = 6000
 )
 
 const (
@@ -27,7 +29,6 @@ const (
 const (
 	ChannelActionEnable = iota
 	ChannelActionDisable
-	ChannelActionDelete
 	ChannelActionAddAdmin
 	ChannelActionDelAdmin
 	ChannelActionAddFollow
@@ -48,7 +49,7 @@ type ModuleInterval struct {
 type ChannelSetting struct {
 	ID            string `storm:"id"`
 	Enabled       bool   `storm:"index"`
-	AdminUserIDs  []int
+	AdminUserIDs  *[]string
 	Followings    *map[int][]string
 	PushIntervals *map[int]int
 }
@@ -88,6 +89,7 @@ func MakeModuleLabeler() *ModuleLabeler {
 func (cset *ChannelSetting) update(action int, param interface{}) {
 	pint, iok := param.(ModuleInterval)
 	puser, uok := param.(ModuleUser)
+	newadmin, aok := param.(string)
 	switch action {
 	case ChannelActionEnable:
 		cset.Enabled = true
@@ -134,15 +136,36 @@ func (cset *ChannelSetting) update(action int, param interface{}) {
 		if iok {
 			(*cset.PushIntervals)[pint.Module] = pint.PushInterval
 		}
+	case ChannelActionAddAdmin:
+		if aok{
+			for _, admin := range *cset.AdminUserIDs{
+				if newadmin == admin{
+					return
+				}
+			}
+			*cset.AdminUserIDs = append(*cset.AdminUserIDs, newadmin)
+		}
+	case ChannelActionDelAdmin:
+		if aok{
+			for i, admin := range *cset.AdminUserIDs{
+				if newadmin == admin{
+					*cset.AdminUserIDs = append((*cset.AdminUserIDs)[:i], (*cset.AdminUserIDs)[i+1:]...)
+					return
+				}
+			}
+		}
 	}
+
 }
 
 type Channel struct {
 	*ChannelSetting
-	DB      *storm.DB
-	TGBOT   *TelegramBot
-	Control chan int
-	Chat    *telebot.Chat
+	DB          *storm.DB
+	TGBOT       *TelegramBot
+	PushControl chan int
+	Chat        *telebot.Chat
+	MessageControl chan int
+	MessageList chan f.ReplyMessage
 }
 
 func (c *Channel) UpdateSettings(action int, param interface{}) {
@@ -150,12 +173,14 @@ func (c *Channel) UpdateSettings(action int, param interface{}) {
 	c.DB.Save(c.ChannelSetting)
 }
 
-func (c *Channel) PushModule(control chan int, chat *telebot.Chat, module_id int, followings []string, wait_time time.Duration) {
+func (c *Channel) PushModule(control chan int, module_id int, followings []string, wait_time time.Duration) {
 	fetcher := c.TGBOT.CreateModule(module_id)
 	for {
 		log.Printf("Will check for update for module %s-%s:%s", c.ID, MakeModuleLabeler().Module2Str(module_id), strings.Join(followings, ","))
 		next_start := time.After(wait_time)
-		c.TGBOT.SendAll(chat, fetcher.GetPush(c.ID, followings))
+		for _, m := range fetcher.GetPush(c.ID, followings){
+			c.MessageList <- m
+		}
 		select {
 		case <-control:
 			log.Println("Received exit signal")
@@ -167,23 +192,46 @@ func (c *Channel) PushModule(control chan int, chat *telebot.Chat, module_id int
 	}
 }
 
+func (c *Channel) WaitSend() {
+	for{
+		tlimit := time.After(time.Duration(3) * time.Second)
+		msg := <-c.MessageList
+		func (){
+			defer func(){
+				if err := recover(); err != nil{
+					log.Println("Panic!", err)
+				}
+			}()
+			c.TGBOT.Send(c.Chat, msg)
+		}()
+
+		select{
+		case <-c.MessageControl:
+			return
+		case <-tlimit:
+			continue
+		}
+	}
+}
+
 func (c *Channel) Push() {
+	go c.WaitSend()
 	for {
-		controlers := make([]chan int, 0, len(*c.Followings))
+		controllers := make([]chan int, 0, len(*c.Followings))
 		for module_id, followings := range *c.Followings {
 			signal := make(chan int, 1)
-			controlers = append(controlers, signal)
+			controllers = append(controllers, signal)
 			if len(followings) == 0 {
 				log.Printf("Module %d started but there's no followings.", module_id)
 			} else {
-				go c.PushModule(signal, c.Chat, module_id, followings, time.Duration((*c.PushIntervals)[module_id])*time.Second)
+				go c.PushModule(signal, module_id, followings, time.Duration((*c.PushIntervals)[module_id])*time.Second)
 				log.Printf("Module %d started:%s.", module_id, strings.Join(followings, ","))
 			}
 		}
 		select {
-		case t := <-c.Control:
+		case t := <-c.PushControl:
 			log.Printf("Receive signal %d.", t)
-			for _, cc := range controlers {
+			for _, cc := range controllers {
 				cc <- 1
 			}
 			if t == SignalExit {
@@ -196,11 +244,12 @@ func (c *Channel) Push() {
 }
 
 func (c *Channel) Reload() {
-	c.Control <- SignalReload
+	c.PushControl <- SignalReload
 }
 
 func (c *Channel) Exit() {
-	c.Control <- SignalExit
+	c.PushControl <- SignalExit
+	c.MessageControl <- SignalExit
 }
 
 func (c *Channel) Enable() {
@@ -221,6 +270,14 @@ func (c *Channel) AddFollowing(user ModuleUser) {
 func (c *Channel) DelFollowing(user ModuleUser) {
 	c.UpdateSettings(ChannelActionDelFollow, user)
 	c.Reload()
+}
+
+func (c *Channel) AddAdmin(user string) {
+	c.UpdateSettings(ChannelActionAddAdmin, user)
+}
+
+func (c *Channel) DelAdmin(user string) {
+	c.UpdateSettings(ChannelActionDelAdmin, user)
 }
 
 func (c *Channel) UpdateInterval(interval ModuleInterval) {
@@ -245,7 +302,8 @@ func MakeChannels(TGBOT *TelegramBot) []*Channel {
 			log.Printf("Chat %s deleted.\n", channel_settings[i].ID)
 			continue
 		}
-		channels = append(channels, &Channel{&channel_settings[i], db, TGBOT, make(chan int), chat})
+		channels = append(channels, &Channel{&channel_settings[i], db, TGBOT, make(chan int),
+		chat, make(chan int), make(chan f.ReplyMessage, DefaultMessageQueueSize)})
 	}
 	return channels
 }
@@ -265,7 +323,8 @@ func AddChannelIfNotExists(TGBOT *TelegramBot, channel_id string) (*Channel, err
 	}
 	followings := make(map[int][]string)
 	intervals := make(map[int]int)
-	channel_setting := ChannelSetting{ID: channel_id, Enabled: true, AdminUserIDs: make([]int, 0, 0),
+	admins := make([]string, 0, 0)
+	channel_setting := ChannelSetting{ID: channel_id, Enabled: true, AdminUserIDs: &admins,
 		Followings: &followings, PushIntervals: &intervals}
 	e = tx.Save(&channel_setting)
 	if e != nil {
@@ -279,7 +338,8 @@ func AddChannelIfNotExists(TGBOT *TelegramBot, channel_id string) (*Channel, err
 	}
 	log.Println("Channel added.")
 	tx.Commit()
-	return &Channel{&channel_setting, db, TGBOT, make(chan int), chat}, nil
+	return &Channel{&channel_setting, db, TGBOT, make(chan int), chat,
+	make(chan int), make(chan f.ReplyMessage, DefaultMessageQueueSize)}, nil
 }
 
 func DelChannelIfExists(TGBOT *TelegramBot, channel_id string) error {

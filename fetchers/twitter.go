@@ -18,7 +18,7 @@ type TwitterFetcher struct {
 }
 
 const (
-	MaxTweetCount = "10"
+	MaxTweetCount = "20"
 )
 
 func (f *TwitterFetcher) Init(db *storm.DB) (err error) {
@@ -48,13 +48,21 @@ func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessag
 		resources := make([]Resource, 0, len(tweet.ExtendedEntities.Media))
 		for _, media := range tweet.ExtendedEntities.Media {
 			var rType int
+			var rURL string
 			switch media.Type {
 			case "photo":
 				rType = TIMAGE
+				rURL = media.Media_url_https
 			case "video":
 				rType = TVIDEO
+				if len(media.VideoInfo.Variants) == 0{
+					continue
+				}
+				rURL = media.VideoInfo.Variants[0].Url
 			}
-			resources = append(resources, Resource{media.Media_url_https, rType})
+			if rURL != ""{
+				resources = append(resources, Resource{rURL, rType})
+			}
 		}
 		ret = append(ret, ReplyMessage{resources, tweet.FullText, nil})
 	}

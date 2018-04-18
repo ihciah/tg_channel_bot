@@ -5,10 +5,8 @@ import (
 	"time"
 	"errors"
 	"log"
-	"io/ioutil"
 	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type TumblrPosts struct {
@@ -41,7 +39,6 @@ type TumblrPosts struct {
 		Posts []struct {
 			Type               string        `json:"type"`
 			BlogName           string        `json:"blog_name"`
-			ID                 int64         `json:"id"`
 			PostURL            string        `json:"post_url"`
 			Slug               string        `json:"slug"`
 			Date               string        `json:"date"`
@@ -71,9 +68,6 @@ type TumblrPosts struct {
 					ShareFollowing bool `json:"share_following"`
 					CanBeFollowed  bool `json:"can_be_followed"`
 				} `json:"blog"`
-				Post struct {
-					ID string `json:"id"`
-				} `json:"post"`
 				ContentRaw    string `json:"content_raw"`
 				Content       string `json:"content"`
 				IsCurrentItem bool   `json:"is_current_item"`
@@ -131,15 +125,9 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 		return []ReplyMessage{}, errors.New("Need API key.")
 	}
 	api_url := fmt.Sprintf("https://api.tumblr.com/v2/blog/%s.tumblr.com/posts?api_key=%s", user, f.OAuthConsumerKey)
-	//resp, err := f.HTTPGet(api_url)
-	resp, err := http.Get(api_url)
+	resp_content, err := f.HTTPGet(api_url)
 	if err != nil {
 		log.Println("Unable to request tumblr api", err)
-		return []ReplyMessage{}, err
-	}
-	resp_content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("Unable to read response", err)
 		return []ReplyMessage{}, err
 	}
 	posts := TumblrPosts{}
@@ -156,21 +144,20 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 		if p.Type != "photo" && p.Type != "video"{
 			continue
 		}
-		//if int64(p.Timestamp) < time{
-		//	break
-		//}
+		if int64(p.Timestamp) < time{
+			break
+		}
 		res := make([]Resource, 0, len(p.Photos))
 		for _, photo := range p.Photos{
-			log.Println(photo.OriginalSize.URL)
-			res = append(res, Resource{URL: photo.OriginalSize.URL, T: TIMAGE})
+			res = append(res, Resource{photo.OriginalSize.URL, TIMAGE})
+		}
+		if p.VideoURL != ""{
+			res = append(res, Resource{p.VideoURL, TVIDEO})
 		}
 		if len(res) > 0 {
 			ret = append(ret, ReplyMessage{res, p.ShortURL, nil})
 		}
-		if p.VideoURL != ""{
-			log.Println(p.VideoURL)
-			ret = append(ret, ReplyMessage{[]Resource{{p.VideoURL, TVIDEO}},p.ShortURL,nil})
-		}
+
 	}
 	return ret, nil
 }

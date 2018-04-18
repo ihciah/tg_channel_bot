@@ -6,6 +6,8 @@ import (
 	"github.com/dghubble/sling"
 	"log"
 	"net/http"
+	"time"
+	"io/ioutil"
 )
 
 const (
@@ -41,24 +43,30 @@ type BaseFetcher struct {
 // Initialize
 func (f *BaseFetcher) Init(db *storm.DB) error {
 	f.UA = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
-	f.client = http.Client{}
-	f.sling = sling.New().Client(&f.client).Set("User-Agent", f.UA)
+	f.client = http.Client{Timeout: time.Duration(30)* time.Second}
 	return nil
 }
 
-func (f *BaseFetcher) HTTPGet(url string) (*http.Response, error) {
-	var resp *http.Response
-	request, err := f.sling.Get(url).Request()
+func (f *BaseFetcher) HTTPGet(url string) ([]byte, error) {
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Println("Cannot create request", err)
-		return resp, err
+		return []byte{}, err
 	}
+	request.Close = true
+	request.Header.Set("User-Agent", f.UA)
 	response, err := f.client.Do(request)
 	if err != nil {
 		log.Println("Cannot do request", err)
-		return resp, err
+		return []byte{}, err
 	}
-	return response, nil
+	defer response.Body.Close()
+	resp_content, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Println("Unable to read response", err)
+		return []byte{}, err
+	}
+	return resp_content, nil
 }
 
 // For channel update

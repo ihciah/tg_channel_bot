@@ -40,14 +40,13 @@ func (TGBOT *TelegramBot) h_delfollow(p string, m *tb.Message) string {
 }
 
 func (TGBOT *TelegramBot) h_user(p string, m *tb.Message, is_add bool) string {
-	// Admin check
 	commands := strings.SplitN(p, " ", 3)
 	if len(commands) != 3 {
 		return "Usage: addfollow/delfollow @Channel site userid"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == commands[0] {
-			if !auth_user(m.Sender, v.AdminUserIDs, TGBOT.Admins) {
+			if !auth_user(m.Sender, *v.AdminUserIDs, TGBOT.Admins) {
 				return "Unauthorized."
 			}
 			module := MakeModuleLabeler().Str2Module(commands[1])
@@ -63,7 +62,46 @@ func (TGBOT *TelegramBot) h_user(p string, m *tb.Message, is_add bool) string {
 			}
 		}
 	}
-	return "No such channel. Add it first."
+	return "No such channel."
+}
+
+func (TGBOT *TelegramBot) h_addadmin(p string, m *tb.Message) string{
+	return TGBOT.h_admin(p, m, true)
+}
+
+func (TGBOT *TelegramBot) h_deladmin(p string, m *tb.Message) string{
+	return TGBOT.h_admin(p, m, false)
+}
+
+func (TGBOT *TelegramBot) h_listadmin(p string, m *tb.Message) string{
+	for _, v := range *TGBOT.Channels {
+		if v.ID == p {
+			if len(*v.AdminUserIDs) == 0{
+				return "No admin."
+			}
+			return fmt.Sprintf("Admins for %s:\n%s", v.ID, strings.Join(*v.AdminUserIDs, "\n"))
+		}
+	}
+	return "No such channel."
+}
+
+func (TGBOT *TelegramBot) h_admin(p string, m *tb.Message, is_add bool) string {
+	commands := strings.SplitN(p, " ", 2)
+	if len(commands) != 2 {
+		return "Usage: addadmin/deladmin @Channel userid"
+	}
+	for _, v := range *TGBOT.Channels {
+		if v.ID == commands[0] {
+			if is_add {
+				v.AddAdmin(commands[1])
+				return "Admin added."
+			} else {
+				v.DelAdmin(commands[1])
+				return "Admin deleted."
+			}
+		}
+	}
+	return "No such channel."
 }
 
 func (TGBOT *TelegramBot) h_listfollow(p string, m *tb.Message) string {
@@ -72,7 +110,7 @@ func (TGBOT *TelegramBot) h_listfollow(p string, m *tb.Message) string {
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p {
-			if !auth_user(m.Sender, v.AdminUserIDs, TGBOT.Admins) {
+			if !auth_user(m.Sender, *v.AdminUserIDs, TGBOT.Admins) {
 				return "Unauthorized."
 			}
 			ret := make([]string, 0, len(*TGBOT.Channels))
@@ -99,7 +137,7 @@ func (TGBOT *TelegramBot) h_setinterval(p string, m *tb.Message) string {
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == commands[0] {
-			if !auth_user(m.Sender, v.AdminUserIDs, TGBOT.Admins) {
+			if !auth_user(m.Sender, *v.AdminUserIDs, TGBOT.Admins) {
 				return "Unauthorized."
 			}
 			module_id := MakeModuleLabeler().Str2Module(commands[1])
@@ -132,7 +170,7 @@ func (TGBOT *TelegramBot) h_goback(p string, m *tb.Message) string {
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == commands[0] {
-			if !auth_user(m.Sender, v.AdminUserIDs, TGBOT.Admins) {
+			if !auth_user(m.Sender, *v.AdminUserIDs, TGBOT.Admins) {
 				return "Unauthorized."
 			}
 			module_id := MakeModuleLabeler().Str2Module(commands[1])
@@ -143,7 +181,6 @@ func (TGBOT *TelegramBot) h_goback(p string, m *tb.Message) string {
 			if err := fetcher.GoBack(v.ID, back); err != nil {
 				return fmt.Sprintf("Error when go back. %s", err)
 			}
-			v.Reload()
 			return fmt.Sprintf("Site %s for channel %s has been set to %d seconds before.", commands[1], v.ID, back)
 		}
 	}
@@ -152,18 +189,18 @@ func (TGBOT *TelegramBot) h_goback(p string, m *tb.Message) string {
 
 func (TGBOT *TelegramBot) requireSuperAdmin(f func(string, *tb.Message) string) func(string, *tb.Message) string {
 	return func(p string, m *tb.Message) string {
-		if auth_user(m.Sender, []int{}, TGBOT.Admins) {
+		if auth_user(m.Sender, []string{}, TGBOT.Admins) {
 			log.Println("Authorized.")
 			return f(p, m)
 		}
 		log.Println("Unauthorized", m.Sender.Username)
-		return "Unauthorized user."
+		return "Unauthorized user. Superadmin needed."
 	}
 }
 
-func auth_user(user *tb.User, admin_list []int, super_admin_list []string) bool {
+func auth_user(user *tb.User, admin_list []string, super_admin_list []string) bool {
 	for _, u := range admin_list {
-		if user.ID == u {
+		if user.Username == u {
 			return true
 		}
 	}

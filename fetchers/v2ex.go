@@ -2,7 +2,6 @@ package fetchers
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"strings"
 )
@@ -44,14 +43,9 @@ type V2EXHot []struct {
 
 func (f *V2EXFetcher) GetPush(string, []string) []ReplyMessage {
 	api_url := "https://www.v2ex.com/api/topics/hot.json"
-	resp, err := f.HTTPGet(api_url)
+	resp_content, err := f.HTTPGet(api_url)
 	if err != nil {
 		log.Println("Unable to crawl v2ex api", err)
-		return []ReplyMessage{{Err: err}}
-	}
-	resp_content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("Unable to read response", err)
 		return []ReplyMessage{{Err: err}}
 	}
 	hot := V2EXHot{}

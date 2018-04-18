@@ -114,10 +114,6 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 func (TGBOT *TelegramBot) SendAll(to tb.Recipient, messages []f.ReplyMessage) (err error) {
 	err = nil
 	for _, msg := range messages {
-		//e := TGBOT.Send(to, msg)
-		//if e != nil{
-		//	err = e
-		//}
 		go TGBOT.Send(to, msg)
 	}
 	return

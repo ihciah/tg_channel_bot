@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/go-xmlpath/xmlpath"
 	"log"
-	"net/http"
+	"bytes"
 )
 
 type ExampleFetcher struct {
@@ -24,9 +24,9 @@ func (f *ExampleFetcher) GetPush(string, []string) []ReplyMessage {
 	return []ReplyMessage{reply}
 }
 
-func (f *ExampleFetcher) parse_img_page(resp *http.Response) (string, error) {
+func (f *ExampleFetcher) parse_img_page(resp []byte) (string, error) {
 	path := xmlpath.MustCompile("//input[@class='sls']/@value")
-	root, err := xmlpath.ParseHTML(resp.Body)
+	root, err := xmlpath.ParseHTML(bytes.NewBuffer(resp))
 	if err != nil {
 		return "", err
 	}

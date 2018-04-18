@@ -88,11 +88,14 @@ func (TGBOT *TelegramBot) handle_controller(m *tb.Message) {
 	handlers := map[string]func(string, *tb.Message) string{
 		"addchannel":  TGBOT.requireSuperAdmin(TGBOT.h_addchannel),
 		"delchannel":  TGBOT.requireSuperAdmin(TGBOT.h_delchannel),
+		"listchannel": TGBOT.requireSuperAdmin(TGBOT.h_listchannel),
 		"addfollow":   TGBOT.h_addfollow,
 		"delfollow":   TGBOT.h_delfollow,
 		"listfollow":  TGBOT.h_listfollow,
+		"addadmin":    TGBOT.requireSuperAdmin(TGBOT.h_addadmin),
+		"deladmin":    TGBOT.requireSuperAdmin(TGBOT.h_deladmin),
+		"listadmin":   TGBOT.requireSuperAdmin(TGBOT.h_listadmin),
 		"setinterval": TGBOT.h_setinterval,
-		"listchannel": TGBOT.requireSuperAdmin(TGBOT.h_listchannel),
 		"goback":      TGBOT.h_goback,
 	}
 	available_commands := make([]string, 0, len(handlers))
