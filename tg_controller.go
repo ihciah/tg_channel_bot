@@ -63,9 +63,6 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 	}
 
 	if len(message.Resources) == 1 {
-		if len(message.Caption) >= 190{
-			message.Caption = message.Caption[:191]
-		}
 		var err error
 		var mediaFile tb.InputMedia
 		if message.Resources[0].T == f.TIMAGE {
@@ -73,7 +70,7 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 		} else if message.Resources[0].T == f.TVIDEO {
 			mediaFile = &tb.Video{File: tb.FromURL(message.Resources[0].URL), Caption: message.Caption}
 		} else {
-			err = errors.New("Undefined message type.")
+			return errors.New("Undefined message type.")
 		}
 		_, err = TGBOT.Bot.Send(to, mediaFile)
 		return err

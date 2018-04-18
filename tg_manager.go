@@ -143,6 +143,7 @@ func (TGBOT *TelegramBot) h_goback(p string, m *tb.Message) string {
 			if err := fetcher.GoBack(v.ID, back); err != nil {
 				return fmt.Sprintf("Error when go back. %s", err)
 			}
+			v.Reload()
 			return fmt.Sprintf("Site %s for channel %s has been set to %d seconds before.", commands[1], v.ID, back)
 		}
 	}

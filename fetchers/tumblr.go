@@ -165,7 +165,7 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 			res = append(res, Resource{URL: photo.OriginalSize.URL, T: TIMAGE})
 		}
 		if len(res) > 0 {
-			ret = append(ret, ReplyMessage{res, p.Caption, nil})
+			ret = append(ret, ReplyMessage{res, p.ShortURL, nil})
 		}
 		if p.VideoURL != ""{
 			log.Println(p.VideoURL)
