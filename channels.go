@@ -103,6 +103,11 @@ func (cset *ChannelSetting) update(action int, param interface{}) {
 			if !ok {
 				(*cset.Followings)[puser.Module] = make([]string, 0, 0)
 			}
+			for _, u := range (*cset.Followings)[puser.Module]{
+				if u == puser.Username{
+					return
+				}
+			}
 			(*cset.Followings)[puser.Module] = append((*cset.Followings)[puser.Module], puser.Username)
 			_, ok = (*cset.PushIntervals)[puser.Module]
 			if !ok {
@@ -148,7 +153,7 @@ func (c *Channel) UpdateSettings(action int, param interface{}) {
 func (c *Channel) PushModule(control chan int, chat *telebot.Chat, module_id int, followings []string, wait_time time.Duration) {
 	fetcher := c.TGBOT.CreateModule(module_id)
 	for {
-		log.Printf("Will check for update for module %s:%s", c.ID, strings.Join(followings, ","))
+		log.Printf("Will check for update for module %s-%s:%s", c.ID, MakeModuleLabeler().Module2Str(module_id), strings.Join(followings, ","))
 		next_start := time.After(wait_time)
 		c.TGBOT.SendAll(chat, fetcher.GetPush(c.ID, followings))
 		select {

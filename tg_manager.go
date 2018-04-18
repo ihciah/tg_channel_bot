@@ -106,7 +106,7 @@ func (TGBOT *TelegramBot) h_setinterval(p string, m *tb.Message) string {
 			if module_id < 0 {
 				return "Unsupported site."
 			}
-			(*v.PushIntervals)[module_id] = interval
+			v.UpdateInterval(ModuleInterval{module_id, interval})
 			return "Push Interval Updated."
 		}
 	}

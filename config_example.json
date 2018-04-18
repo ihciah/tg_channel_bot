@@ -2,6 +2,7 @@
   "token": "YOUR_TELEGRAM_BOT_TOKEN",
   "timeout": 60,
   "database": "PATH_TO_DATABASE_FILE",
+  "admins": ["ADMIN_USER_ID_WITHOUT@"],
   "fetcher_config": {
     "twitter": {
       "access_token": "YOUR_TWITTER_ACCESS_TOKEN",

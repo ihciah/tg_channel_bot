@@ -38,6 +38,7 @@ type BaseFetcher struct {
 	client http.Client
 }
 
+// Initialize
 func (f *BaseFetcher) Init(db *storm.DB) error {
 	f.UA = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
 	f.client = http.Client{}
@@ -60,10 +61,12 @@ func (f *BaseFetcher) HTTPGet(url string) (*http.Response, error) {
 	return response, nil
 }
 
+// For channel update
 func (f *BaseFetcher) GetPush(string, []string) []ReplyMessage {
 	return []ReplyMessage{{Caption: "Unsupported. You should define GetPush function first."}}
 }
 
+// For user request update
 func (f *BaseFetcher) GetPushAtLeastOne(userid string, following []string) (ret []ReplyMessage) {
 	ret = f.GetPush(userid, following)
 	if len(ret) == 0 {
@@ -72,6 +75,7 @@ func (f *BaseFetcher) GetPushAtLeastOne(userid string, following []string) (ret 
 	return
 }
 
+// Set last update time to several seconds before
 func (f *BaseFetcher) GoBack(string, int64) error {
 	return errors.New("Time machine unsupported for this site.")
 }
