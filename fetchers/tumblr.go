@@ -9,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"time"
+	"strings"
 )
 
 type TumblrPosts struct {
@@ -196,7 +197,11 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 
 		res := make([]Resource, 0, len(p.Photos))
 		for _, photo := range p.Photos {
-			res = append(res, Resource{photo.OriginalSize.URL, TIMAGE})
+			tType := TIMAGE
+			if strings.HasSuffix(strings.ToLower(photo.OriginalSize.URL), ".gif"){
+				tType = TVIDEO
+			}
+			res = append(res, Resource{photo.OriginalSize.URL, tType})
 		}
 		if p.VideoURL != "" {
 			res = append(res, Resource{p.VideoURL, TVIDEO})

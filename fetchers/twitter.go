@@ -76,6 +76,12 @@ func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessag
 					continue
 				}
 				rURL = media.VideoInfo.Variants[0].Url
+			case "animated_gif":
+				rType = TVIDEO
+				if len(media.VideoInfo.Variants) == 0 {
+					continue
+				}
+				rURL = media.VideoInfo.Variants[0].Url
 			}
 			if rURL != "" {
 				resources = append(resources, Resource{rURL, rType})
