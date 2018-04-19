@@ -16,29 +16,8 @@ type TumblrPosts struct {
 	Meta struct {
 		Status               int    `json:"status"`
 		Msg                  string `json:"msg"`
-		XTumblrContentRating string `json:"x_tumblr_content_rating"`
 	} `json:"meta"`
 	Response struct {
-		Blog struct {
-			Ask                 bool   `json:"ask"`
-			AskAnon             bool   `json:"ask_anon"`
-			AskPageTitle        string `json:"ask_page_title"`
-			CanSubscribe        bool   `json:"can_subscribe"`
-			Description         string `json:"description"`
-			IsAdult             bool   `json:"is_adult"`
-			IsNsfw              bool   `json:"is_nsfw"`
-			Name                string `json:"name"`
-			Posts               int    `json:"posts"`
-			ReplyConditions     string `json:"reply_conditions"`
-			ShareLikes          bool   `json:"share_likes"`
-			SubmissionPageTitle string `json:"submission_page_title"`
-			Subscribed          bool   `json:"subscribed"`
-			Title               string `json:"title"`
-			TotalPosts          int    `json:"total_posts"`
-			Updated             int    `json:"updated"`
-			URL                 string `json:"url"`
-			IsOptoutAds         bool   `json:"is_optout_ads"`
-		} `json:"blog"`
 		Posts []struct {
 			Type               string        `json:"type"`
 			BlogName           string        `json:"blog_name"`
@@ -49,14 +28,8 @@ type TumblrPosts struct {
 			Timestamp          int           `json:"timestamp"`
 			State              string        `json:"state"`
 			Format             string        `json:"format"`
-			ReblogKey          string        `json:"reblog_key"`
-			Tags               []interface{} `json:"tags"`
 			ShortURL           string        `json:"short_url"`
-			Summary            string        `json:"summary"`
 			IsBlocksPostFormat bool          `json:"is_blocks_post_format"`
-			RecommendedSource  interface{}   `json:"recommended_source"`
-			RecommendedColor   interface{}   `json:"recommended_color"`
-			NoteCount          int           `json:"note_count"`
 			SourceURL          string        `json:"source_url,omitempty"`
 			SourceTitle        string        `json:"source_title,omitempty"`
 			Caption            string        `json:"caption,omitempty"`
@@ -65,53 +38,18 @@ type TumblrPosts struct {
 				TreeHTML string `json:"tree_html"`
 			} `json:"reblog"`
 			Trail []struct {
-				Blog struct {
-					Name   string `json:"name"`
-					Active bool   `json:"active"`
-					Theme  struct {
-						AvatarShape        string `json:"avatar_shape"`
-						BackgroundColor    string `json:"background_color"`
-						BodyFont           string `json:"body_font"`
-						HeaderBounds       string `json:"header_bounds"`
-						HeaderImage        string `json:"header_image"`
-						HeaderImageFocused string `json:"header_image_focused"`
-						HeaderImageScaled  string `json:"header_image_scaled"`
-						HeaderStretch      bool   `json:"header_stretch"`
-						LinkColor          string `json:"link_color"`
-						ShowAvatar         bool   `json:"show_avatar"`
-						ShowDescription    bool   `json:"show_description"`
-						ShowHeaderImage    bool   `json:"show_header_image"`
-						ShowTitle          bool   `json:"show_title"`
-						TitleColor         string `json:"title_color"`
-						TitleFont          string `json:"title_font"`
-						TitleFontWeight    string `json:"title_font_weight"`
-					} `json:"theme"`
-					ShareLikes     bool `json:"share_likes"`
-					ShareFollowing bool `json:"share_following"`
-					CanBeFollowed  bool `json:"can_be_followed"`
-				} `json:"blog"`
 				Post struct {
 					ID interface{} `json:"id"`
 				} `json:"post"`
 				ContentRaw    string `json:"content_raw"`
 				Content       string `json:"content"`
-				IsCurrentItem bool   `json:"is_current_item"`
 			} `json:"trail"`
 			VideoURL        string `json:"video_url,omitempty"`
-			HTML5Capable    bool   `json:"html5_capable,omitempty"`
 			ThumbnailURL    string `json:"thumbnail_url,omitempty"`
 			ThumbnailWidth  int    `json:"thumbnail_width,omitempty"`
 			ThumbnailHeight int    `json:"thumbnail_height,omitempty"`
 			Duration        int    `json:"duration,omitempty"`
-			Player          []struct {
-				Width     int    `json:"width"`
-				EmbedCode string `json:"embed_code"`
-			} `json:"player,omitempty"`
 			VideoType        string `json:"video_type,omitempty"`
-			CanLike          bool   `json:"can_like"`
-			CanReblog        bool   `json:"can_reblog"`
-			CanSendInMessage bool   `json:"can_send_in_message"`
-			CanReply         bool   `json:"can_reply"`
 			DisplayAvatar    bool   `json:"display_avatar"`
 			PhotosetLayout   string `json:"photoset_layout,omitempty"`
 			Photos           []struct {
@@ -121,11 +59,6 @@ type TumblrPosts struct {
 					Width  int    `json:"width"`
 					Height int    `json:"height"`
 				} `json:"original_size"`
-				AltSizes []struct {
-					URL    string `json:"url"`
-					Width  int    `json:"width"`
-					Height int    `json:"height"`
-				} `json:"alt_sizes"`
 			} `json:"photos,omitempty"`
 			ImagePermalink string `json:"image_permalink,omitempty"`
 			Title          string `json:"title,omitempty"`
