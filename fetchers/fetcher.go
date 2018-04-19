@@ -15,6 +15,11 @@ const (
 	TVIDEO
 )
 
+const (
+	cacheExp   = 48
+	cachePurge = 96
+)
+
 type Resource struct {
 	URL string
 	T   int

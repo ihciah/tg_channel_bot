@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/asdine/storm"
+	"github.com/patrickmn/go-cache"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -39,6 +41,7 @@ type TumblrPosts struct {
 		Posts []struct {
 			Type               string        `json:"type"`
 			BlogName           string        `json:"blog_name"`
+			ID                 int64         `json:"id"`
 			PostURL            string        `json:"post_url"`
 			Slug               string        `json:"slug"`
 			Date               string        `json:"date"`
@@ -53,42 +56,63 @@ type TumblrPosts struct {
 			RecommendedSource  interface{}   `json:"recommended_source"`
 			RecommendedColor   interface{}   `json:"recommended_color"`
 			NoteCount          int           `json:"note_count"`
-			SourceURL          string        `json:"source_url"`
-			SourceTitle        string        `json:"source_title"`
-			Caption            string        `json:"caption"`
+			SourceURL          string        `json:"source_url,omitempty"`
+			SourceTitle        string        `json:"source_title,omitempty"`
+			Caption            string        `json:"caption,omitempty"`
 			Reblog             struct {
 				Comment  string `json:"comment"`
 				TreeHTML string `json:"tree_html"`
 			} `json:"reblog"`
 			Trail []struct {
 				Blog struct {
-					Name           string `json:"name"`
-					Active         bool   `json:"active"`
-					ShareLikes     bool   `json:"share_likes"`
-					ShareFollowing bool   `json:"share_following"`
-					CanBeFollowed  bool   `json:"can_be_followed"`
+					Name   string `json:"name"`
+					Active bool   `json:"active"`
+					Theme  struct {
+						AvatarShape        string `json:"avatar_shape"`
+						BackgroundColor    string `json:"background_color"`
+						BodyFont           string `json:"body_font"`
+						HeaderBounds       string `json:"header_bounds"`
+						HeaderImage        string `json:"header_image"`
+						HeaderImageFocused string `json:"header_image_focused"`
+						HeaderImageScaled  string `json:"header_image_scaled"`
+						HeaderStretch      bool   `json:"header_stretch"`
+						LinkColor          string `json:"link_color"`
+						ShowAvatar         bool   `json:"show_avatar"`
+						ShowDescription    bool   `json:"show_description"`
+						ShowHeaderImage    bool   `json:"show_header_image"`
+						ShowTitle          bool   `json:"show_title"`
+						TitleColor         string `json:"title_color"`
+						TitleFont          string `json:"title_font"`
+						TitleFontWeight    string `json:"title_font_weight"`
+					} `json:"theme"`
+					ShareLikes     bool `json:"share_likes"`
+					ShareFollowing bool `json:"share_following"`
+					CanBeFollowed  bool `json:"can_be_followed"`
 				} `json:"blog"`
+				Post struct {
+					ID interface{} `json:"id"`
+				} `json:"post"`
 				ContentRaw    string `json:"content_raw"`
 				Content       string `json:"content"`
 				IsCurrentItem bool   `json:"is_current_item"`
 			} `json:"trail"`
-			VideoURL        string `json:"video_url"`
-			HTML5Capable    bool   `json:"html5_capable"`
-			ThumbnailURL    string `json:"thumbnail_url"`
-			ThumbnailWidth  int    `json:"thumbnail_width"`
-			ThumbnailHeight int    `json:"thumbnail_height"`
-			Duration        int    `json:"duration"`
+			VideoURL        string `json:"video_url,omitempty"`
+			HTML5Capable    bool   `json:"html5_capable,omitempty"`
+			ThumbnailURL    string `json:"thumbnail_url,omitempty"`
+			ThumbnailWidth  int    `json:"thumbnail_width,omitempty"`
+			ThumbnailHeight int    `json:"thumbnail_height,omitempty"`
+			Duration        int    `json:"duration,omitempty"`
 			Player          []struct {
 				Width     int    `json:"width"`
 				EmbedCode string `json:"embed_code"`
-			} `json:"player"`
-			VideoType        string `json:"video_type"`
+			} `json:"player,omitempty"`
+			VideoType        string `json:"video_type,omitempty"`
 			CanLike          bool   `json:"can_like"`
 			CanReblog        bool   `json:"can_reblog"`
 			CanSendInMessage bool   `json:"can_send_in_message"`
 			CanReply         bool   `json:"can_reply"`
 			DisplayAvatar    bool   `json:"display_avatar"`
-			PhotosetLayout   string `json:"photoset_layout"`
+			PhotosetLayout   string `json:"photoset_layout,omitempty"`
 			Photos           []struct {
 				Caption      string `json:"caption"`
 				OriginalSize struct {
@@ -101,10 +125,10 @@ type TumblrPosts struct {
 					Width  int    `json:"width"`
 					Height int    `json:"height"`
 				} `json:"alt_sizes"`
-			} `json:"photos"`
-			ImagePermalink string `json:"image_permalink"`
-			Title          string `json:"title"`
-			Body           string `json:"body"`
+			} `json:"photos,omitempty"`
+			ImagePermalink string `json:"image_permalink,omitempty"`
+			Title          string `json:"title,omitempty"`
+			Body           string `json:"body,omitempty"`
 		} `json:"posts"`
 		TotalPosts int `json:"total_posts"`
 	} `json:"response"`
@@ -113,10 +137,12 @@ type TumblrPosts struct {
 type TumblrFetcher struct {
 	BaseFetcher
 	OAuthConsumerKey string `json:"oauth_consumer_key"`
+	cache            *cache.Cache
 }
 
 func (f *TumblrFetcher) Init(db *storm.DB) (err error) {
 	f.DB = db.From("tumblr")
+	f.cache = cache.New(cacheExp*time.Hour, cachePurge*time.Hour)
 	return
 }
 
@@ -147,6 +173,27 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 		if int64(p.Timestamp) < time {
 			break
 		}
+
+		var msgid string
+		msgid = strconv.FormatInt(p.ID, 10)
+		if len(p.Trail) > 1 {
+			// We should get the original message id
+			msgid_str, ok := p.Trail[0].Post.ID.(string)
+			if ok && msgid_str != ""{
+				msgid = msgid_str
+			}
+			msgid_int64, ok := p.Trail[0].Post.ID.(int64)
+			if ok && msgid_int64 != 0{
+				msgid = strconv.FormatInt(msgid_int64, 10)
+			}
+		}
+		msgid = fmt.Sprintf("%s@%s", user, msgid)
+		_, found := f.cache.Get(msgid)
+		if found {
+			continue
+		}
+		f.cache.Set(msgid, true, cache.DefaultExpiration)
+
 		res := make([]Resource, 0, len(p.Photos))
 		for _, photo := range p.Photos {
 			res = append(res, Resource{photo.OriginalSize.URL, TIMAGE})

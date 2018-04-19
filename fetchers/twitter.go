@@ -2,8 +2,10 @@ package fetchers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/asdine/storm"
+	"github.com/patrickmn/go-cache"
 	"net/url"
 	"time"
 )
@@ -15,6 +17,7 @@ type TwitterFetcher struct {
 	AccessToeknSecret string `json:"access_token_secret"`
 	ConsumerKey       string `json:"consumer_key"`
 	ConsumerSecret    string `json:"consumer_secret"`
+	cache             *cache.Cache
 }
 
 const (
@@ -24,6 +27,7 @@ const (
 func (f *TwitterFetcher) Init(db *storm.DB) (err error) {
 	f.DB = db.From("twitter")
 	f.api = anaconda.NewTwitterApiWithCredentials(f.AccessToken, f.AccessToeknSecret, f.ConsumerKey, f.ConsumerSecret)
+	f.cache = cache.New(cacheExp*time.Hour, cachePurge*time.Hour)
 	return
 }
 
@@ -45,6 +49,19 @@ func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessag
 		if tweet_time < time {
 			break
 		}
+
+		var msgid string
+		msgid = tweet.QuotedStatusIdStr
+		if msgid == "" {
+			msgid = tweet.IdStr
+		}
+		msgid = fmt.Sprintf("%s@%s", user, msgid)
+		_, found := f.cache.Get(msgid)
+		if found {
+			continue
+		}
+		f.cache.Set(msgid, true, cache.DefaultExpiration)
+
 		resources := make([]Resource, 0, len(tweet.ExtendedEntities.Media))
 		for _, media := range tweet.ExtendedEntities.Media {
 			var rType int
