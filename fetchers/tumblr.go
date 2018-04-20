@@ -8,31 +8,31 @@ import (
 	"github.com/patrickmn/go-cache"
 	"log"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 )
 
 type TumblrPosts struct {
 	Meta struct {
-		Status               int    `json:"status"`
-		Msg                  string `json:"msg"`
+		Status int    `json:"status"`
+		Msg    string `json:"msg"`
 	} `json:"meta"`
 	Response struct {
 		Posts []struct {
-			Type               string        `json:"type"`
-			BlogName           string        `json:"blog_name"`
-			ID                 int64         `json:"id"`
-			PostURL            string        `json:"post_url"`
-			Slug               string        `json:"slug"`
-			Date               string        `json:"date"`
-			Timestamp          int           `json:"timestamp"`
-			State              string        `json:"state"`
-			Format             string        `json:"format"`
-			ShortURL           string        `json:"short_url"`
-			IsBlocksPostFormat bool          `json:"is_blocks_post_format"`
-			SourceURL          string        `json:"source_url,omitempty"`
-			SourceTitle        string        `json:"source_title,omitempty"`
-			Caption            string        `json:"caption,omitempty"`
+			Type               string `json:"type"`
+			BlogName           string `json:"blog_name"`
+			ID                 int64  `json:"id"`
+			PostURL            string `json:"post_url"`
+			Slug               string `json:"slug"`
+			Date               string `json:"date"`
+			Timestamp          int    `json:"timestamp"`
+			State              string `json:"state"`
+			Format             string `json:"format"`
+			ShortURL           string `json:"short_url"`
+			IsBlocksPostFormat bool   `json:"is_blocks_post_format"`
+			SourceURL          string `json:"source_url,omitempty"`
+			SourceTitle        string `json:"source_title,omitempty"`
+			Caption            string `json:"caption,omitempty"`
 			Reblog             struct {
 				Comment  string `json:"comment"`
 				TreeHTML string `json:"tree_html"`
@@ -41,18 +41,18 @@ type TumblrPosts struct {
 				Post struct {
 					ID interface{} `json:"id"`
 				} `json:"post"`
-				ContentRaw    string `json:"content_raw"`
-				Content       string `json:"content"`
+				ContentRaw string `json:"content_raw"`
+				Content    string `json:"content"`
 			} `json:"trail"`
 			VideoURL        string `json:"video_url,omitempty"`
 			ThumbnailURL    string `json:"thumbnail_url,omitempty"`
 			ThumbnailWidth  int    `json:"thumbnail_width,omitempty"`
 			ThumbnailHeight int    `json:"thumbnail_height,omitempty"`
 			Duration        int    `json:"duration,omitempty"`
-			VideoType        string `json:"video_type,omitempty"`
-			DisplayAvatar    bool   `json:"display_avatar"`
-			PhotosetLayout   string `json:"photoset_layout,omitempty"`
-			Photos           []struct {
+			VideoType       string `json:"video_type,omitempty"`
+			DisplayAvatar   bool   `json:"display_avatar"`
+			PhotosetLayout  string `json:"photoset_layout,omitempty"`
+			Photos          []struct {
 				Caption      string `json:"caption"`
 				OriginalSize struct {
 					URL    string `json:"url"`
@@ -113,11 +113,11 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 		if len(p.Trail) > 1 {
 			// We should get the original message id
 			msgid_str, ok := p.Trail[0].Post.ID.(string)
-			if ok && msgid_str != ""{
+			if ok && msgid_str != "" {
 				msgid = msgid_str
 			}
 			msgid_int64, ok := p.Trail[0].Post.ID.(int64)
-			if ok && msgid_int64 != 0{
+			if ok && msgid_int64 != 0 {
 				msgid = strconv.FormatInt(msgid_int64, 10)
 			}
 		}
@@ -131,7 +131,7 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 		res := make([]Resource, 0, len(p.Photos))
 		for _, photo := range p.Photos {
 			tType := TIMAGE
-			if strings.HasSuffix(strings.ToLower(photo.OriginalSize.URL), ".gif"){
+			if strings.HasSuffix(strings.ToLower(photo.OriginalSize.URL), ".gif") {
 				tType = TVIDEO
 			}
 			res = append(res, Resource{photo.OriginalSize.URL, tType})

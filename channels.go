@@ -178,7 +178,7 @@ func (c *Channel) PushModule(control chan int, module_id int, followings []strin
 	for {
 		log.Printf("Will check for update for module %s-%s:%s", c.ID, MakeModuleLabeler().Module2Str(module_id), strings.Join(followings, ","))
 		next_start := time.After(wait_time)
-		func (){
+		func() {
 			defer func() {
 				if err := recover(); err != nil {
 					log.Println("Panic!", err)
