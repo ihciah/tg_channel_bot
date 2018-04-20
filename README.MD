@@ -1,6 +1,6 @@
 # tg_channel_bot
 
-# [中文详细说明 戳这！](https://github.com/ihciah/tg_channel_bot/wiki/Telegram-Channel-Bot-使用指南)
+# [中文详细说明 戳这！](https://github.com/ihciah/tg_channel_bot/wiki)
 
 A telegram bot designed for syncing text/image/video from given sites to telegram channel.
 
