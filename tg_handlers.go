@@ -8,7 +8,7 @@ import (
 )
 
 const AboutMessage = "This is a Bot designed for syncing message(text/image/video) " +
-	"from given sites to telegram channel by @ihciah.\n" +
+	"from given sites to telegram channel/user/group by @ihciah.\n" +
 	"Check https://github.com/ihciah/tg_channel_bot for source code and other information.\n"
 
 type FetcherConfig struct {
