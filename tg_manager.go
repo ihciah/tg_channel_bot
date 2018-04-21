@@ -10,23 +10,23 @@ import (
 
 func (TGBOT *TelegramBot) h_addchannel(p []string, m *tb.Message) string {
 	if len(p) != 1 {
-		return "Usage: addchannel @channel_id"
+		return "Usage: addchannel @channel_id/chat_id"
 	}
 	c, err := AddChannelIfNotExists(TGBOT, p[0])
 	if err != nil {
-		return fmt.Sprintf("Channel %s cannot be added. %s", p, err)
+		return fmt.Sprintf("Channel/Chat %s cannot be added. %s", p, err)
 	}
 	*TGBOT.Channels = append(*TGBOT.Channels, c)
 	go c.Push()
-	return fmt.Sprintf("Channel %s added.", p)
+	return fmt.Sprintf("Channel/Chat %s added.", p)
 }
 
 func (TGBOT *TelegramBot) h_delchannel(p []string, m *tb.Message) string {
 	if len(p) != 1 {
-		return "Usage: delchannel @channel_id"
+		return "Usage: delchannel @channel_id/chat_id"
 	}
 	if err := DelChannelIfExists(TGBOT, p[0]); err != nil {
-		return fmt.Sprintf("Channel %s cannot be deleted.", p)
+		return fmt.Sprintf("Channel/Chat %s cannot be deleted.", p)
 	}
 	for i, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -35,7 +35,7 @@ func (TGBOT *TelegramBot) h_delchannel(p []string, m *tb.Message) string {
 			break
 		}
 	}
-	return fmt.Sprintf("Channel %s deleted.", p)
+	return fmt.Sprintf("Channel/Chat %s deleted.", p)
 }
 
 func (TGBOT *TelegramBot) h_addfollow(p []string, m *tb.Message) string {
@@ -48,7 +48,7 @@ func (TGBOT *TelegramBot) h_delfollow(p []string, m *tb.Message) string {
 
 func (TGBOT *TelegramBot) h_user(p []string, m *tb.Message, is_add bool) string {
 	if len(p) != 3 {
-		return "Usage: addfollow/delfollow @channel_id site userid"
+		return "Usage: addfollow/delfollow @channel_id/chat_id site(twitter/tumblr) userid"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -81,7 +81,7 @@ func (TGBOT *TelegramBot) h_deladmin(p []string, m *tb.Message) string {
 
 func (TGBOT *TelegramBot) h_listadmin(p []string, m *tb.Message) string {
 	if len(p) != 1 {
-		return "Usage: listadmin @channel_id"
+		return "Usage: listadmin @channel_id/chat_id"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -96,7 +96,7 @@ func (TGBOT *TelegramBot) h_listadmin(p []string, m *tb.Message) string {
 
 func (TGBOT *TelegramBot) h_admin(p []string, m *tb.Message, is_add bool) string {
 	if len(p) != 2 {
-		return "Usage: addadmin/deladmin @channel_id userid"
+		return "Usage: addadmin/deladmin @channel_id/chat_id userid"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -109,12 +109,12 @@ func (TGBOT *TelegramBot) h_admin(p []string, m *tb.Message, is_add bool) string
 			}
 		}
 	}
-	return "No such channel."
+	return "No such channel/chat."
 }
 
 func (TGBOT *TelegramBot) h_listfollow(p []string, m *tb.Message) string {
 	if len(p) != 1 {
-		return "Usage: listfollow @channel_id"
+		return "Usage: listfollow @channel_id/chat_id"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -136,11 +136,11 @@ func (TGBOT *TelegramBot) h_listfollow(p []string, m *tb.Message) string {
 
 func (TGBOT *TelegramBot) h_setinterval(p []string, m *tb.Message) string {
 	if len(p) != 3 {
-		return "Usage: setinterval @channel_id site N(second)"
+		return "Usage: setinterval @channel_id/chat_id site N(second)"
 	}
 	interval, err := strconv.Atoi(p[2])
 	if err != nil || interval <= 0 {
-		return "Usage: setinterval @Channel site N(second), N should be a positive number"
+		return "Usage: setinterval @Channel/chat_id site N(second), N should be a positive number"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -155,7 +155,7 @@ func (TGBOT *TelegramBot) h_setinterval(p []string, m *tb.Message) string {
 			return "Push Interval Updated."
 		}
 	}
-	return "No such channel"
+	return "No such channel/chat"
 }
 
 func (TGBOT *TelegramBot) h_listchannel(p []string, m *tb.Message) string {
@@ -168,11 +168,11 @@ func (TGBOT *TelegramBot) h_listchannel(p []string, m *tb.Message) string {
 
 func (TGBOT *TelegramBot) h_goback(p []string, m *tb.Message) string {
 	if len(p) != 3 {
-		return "Usage: goback @channel_id site N(second), N=0 means reset to Now."
+		return "Usage: goback @channel_id/chat_id site N(second), N=0 means reset to Now."
 	}
 	back, err := strconv.ParseInt(p[2], 10, 64)
 	if err != nil || back < 0 {
-		return "Usage: goback @Channel site N(second), N >= 0"
+		return "Usage: goback @Channel/chat_id site N(second), N >= 0"
 	}
 	for _, v := range *TGBOT.Channels {
 		if v.ID == p[0] {
@@ -187,10 +187,20 @@ func (TGBOT *TelegramBot) h_goback(p []string, m *tb.Message) string {
 			if err := fetcher.GoBack(v.ID, back); err != nil {
 				return fmt.Sprintf("Error when go back. %s", err)
 			}
-			return fmt.Sprintf("Site %s for channel %s has been set to %d seconds before.", p[1], v.ID, back)
+			return fmt.Sprintf("Site %s for channel/chat %s has been set to %d seconds before.", p[1], v.ID, back)
 		}
 	}
-	return "No such channel"
+	return "No such channel/chat"
+}
+
+func (TGBOT *TelegramBot) h_getid(p []string, m *tb.Message) string {
+	chat_id := m.Chat.ID
+	chat_title := m.Chat.Title
+	user_id := m.Sender.ID
+	first_name := m.Sender.FirstName
+	last_name := m.Sender.LastName
+	username := m.Sender.Username
+	return fmt.Sprintf("Hi %s %s(%s) !\nYour ID: %d\n\nChat: %s\nChatID: %d",last_name, first_name, username, user_id, chat_title, chat_id)
 }
 
 func (TGBOT *TelegramBot) requireSuperAdmin(f func([]string, *tb.Message) string) func([]string, *tb.Message) string {
