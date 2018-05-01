@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/asdine/storm"
 	"github.com/ihciah/telebot"
-	f "github.com/ihciah/tg_channel_bot/fetchers"
+	f "./fetchers"
 	"log"
 	"strings"
 	"time"
@@ -188,9 +188,6 @@ func (c *Channel) PushModule(control chan int, module_id int, followings []strin
 				c.MessageList <- m
 			}
 		}()
-		for _, m := range fetcher.GetPush(c.ID, followings) {
-			c.MessageList <- m
-		}
 		select {
 		case <-control:
 			log.Println("Received exit signal")

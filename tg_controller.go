@@ -6,7 +6,7 @@ import (
 	"github.com/asdine/storm"
 	"github.com/coreos/bbolt"
 	tb "github.com/ihciah/telebot"
-	f "github.com/ihciah/tg_channel_bot/fetchers"
+	f "./fetchers"
 	"io/ioutil"
 	"log"
 	"time"
@@ -66,9 +66,9 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 		var err error
 		var mediaFile tb.InputMedia
 		if message.Resources[0].T == f.TIMAGE {
-			mediaFile = &tb.Photo{File: tb.FromURL(message.Resources[0].URL), Caption: message.Caption}
+			mediaFile = &tb.Photo{File: tb.FromURL(message.Resources[0].URL), Caption: message.Resources[0].Caption}
 		} else if message.Resources[0].T == f.TVIDEO {
-			mediaFile = &tb.Video{File: tb.FromURL(message.Resources[0].URL), Caption: message.Caption}
+			mediaFile = &tb.Video{File: tb.FromURL(message.Resources[0].URL), Caption: message.Resources[0].Caption}
 		} else {
 			return errors.New("Undefined message type.")
 		}
@@ -94,9 +94,9 @@ func (TGBOT *TelegramBot) Send(to tb.Recipient, message f.ReplyMessage) error {
 		mediaFiles := make(tb.Album, 0, MaxAlbumSize)
 		for _, r := range message.Resources[i:end] {
 			if r.T == f.TIMAGE {
-				mediaFiles = append(mediaFiles, &tb.Photo{File: tb.FromURL(r.URL), Caption: message.Caption})
+				mediaFiles = append(mediaFiles, &tb.Photo{File: tb.FromURL(r.URL), Caption: r.Caption})
 			} else if r.T == f.TVIDEO {
-				mediaFiles = append(mediaFiles, &tb.Video{File: tb.FromURL(r.URL), Caption: message.Caption})
+				mediaFiles = append(mediaFiles, &tb.Video{File: tb.FromURL(r.URL), Caption: r.Caption})
 			} else {
 				continue
 			}
