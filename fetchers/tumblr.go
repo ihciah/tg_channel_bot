@@ -134,10 +134,22 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 			if strings.HasSuffix(strings.ToLower(photo.OriginalSize.URL), ".gif") {
 				tType = TVIDEO
 			}
-			res = append(res, Resource{photo.OriginalSize.URL, tType})
+
+			strsplit := strings.Split(photo.OriginalSize.URL,"/")
+			if len(strsplit) >=4 {
+				imghash := fmt.Sprintf("%s@%s", user, strsplit[3])
+				is_blocked := false
+				if err := f.DB.Get("block", imghash, &is_blocked); err == nil {
+					if is_blocked{
+						continue
+					}
+				}
+			}
+
+			res = append(res, Resource{photo.OriginalSize.URL, tType, photo.OriginalSize.URL})
 		}
 		if p.VideoURL != "" {
-			res = append(res, Resource{p.VideoURL, TVIDEO})
+			res = append(res, Resource{p.VideoURL, TVIDEO, p.VideoURL})
 		}
 		if len(res) > 0 {
 			ret = append(ret, ReplyMessage{res, p.ShortURL, nil})
@@ -171,4 +183,14 @@ func (f *TumblrFetcher) GoBack(userid string, back int64) error {
 		return errors.New("Back too long!")
 	}
 	return f.DB.Set("last_update", userid, now-back)
+}
+
+func (f *TumblrFetcher) Block(userid string, caption string) string {
+	strsplit := strings.Split(caption,"/")
+	if len(strsplit) >=4 {
+		imghash := fmt.Sprintf("%s@%s", userid, strsplit[3])
+		f.DB.Set("block", imghash, true)
+		return fmt.Sprintf("%s blocked.", imghash)
+	}
+	return "Unrecognized image caption."
 }

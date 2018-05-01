@@ -42,6 +42,16 @@ func (TGBOT *TelegramBot) RegisterHandler() {
 	//TGBOT.Bot.Handle("/example", TGBOT.handle_example_fetcher_example)
 	//TGBOT.Bot.Handle("/v2ex", TGBOT.handle_v2ex)
 	TGBOT.Bot.Handle(tb.OnText, TGBOT.handle_controller)
+	TGBOT.Bot.Handle(tb.OnPhoto, TGBOT.handle_OnPhoto)
+}
+
+func (TGBOT *TelegramBot) handle_OnPhoto(m *tb.Message){
+	chatid := strconv.FormatInt(m.Chat.ID, 10)
+	var fetcher f.Fetcher
+	if strings.Contains(m.Caption, "tumblr"){
+		fetcher = new(f.TumblrFetcher)
+	}
+	TGBOT.Bot.Send(m.Sender, fetcher.Block(chatid, m.Caption))
 }
 
 func (TGBOT *TelegramBot) handle_about(m *tb.Message) {

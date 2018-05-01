@@ -16,13 +16,14 @@ const (
 )
 
 const (
-	cacheExp   = 48
-	cachePurge = 96
+	cacheExp   = 168
+	cachePurge = 336
 )
 
 type Resource struct {
 	URL string
 	T   int
+	Caption string
 }
 
 type ReplyMessage struct {
@@ -36,6 +37,7 @@ type Fetcher interface {
 	GetPush(string, []string) []ReplyMessage           // For channel message
 	GetPushAtLeastOne(string, []string) []ReplyMessage // For user message
 	GoBack(string, int64) error                        // Set last update time to N seconds before
+	Block(string, string) string
 }
 
 type BaseFetcher struct {
@@ -92,3 +94,8 @@ func (f *BaseFetcher) GetPushAtLeastOne(userid string, following []string) (ret 
 func (f *BaseFetcher) GoBack(string, int64) error {
 	return errors.New("Time machine unsupported for this site.")
 }
+
+func (f *BaseFetcher) Block(string, string) string {
+	return "Unimplement."
+}
+

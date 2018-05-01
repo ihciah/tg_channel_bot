@@ -188,9 +188,6 @@ func (c *Channel) PushModule(control chan int, module_id int, followings []strin
 				c.MessageList <- m
 			}
 		}()
-		for _, m := range fetcher.GetPush(c.ID, followings) {
-			c.MessageList <- m
-		}
 		select {
 		case <-control:
 			log.Println("Received exit signal")
