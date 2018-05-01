@@ -59,10 +59,10 @@ func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessag
 		}
 		msgid = fmt.Sprintf("%s@%s", f.channel_id, msgid)
 		_, found := f.cache.Get(msgid)
+		f.cache.Set(msgid, true, cache.DefaultExpiration)
 		if found {
 			continue
 		}
-		f.cache.Set(msgid, true, cache.DefaultExpiration)
 
 		resources := make([]Resource, 0, len(tweet.ExtendedEntities.Media))
 		for _, media := range tweet.ExtendedEntities.Media {

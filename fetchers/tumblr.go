@@ -122,10 +122,10 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 			}
 			imghash := fmt.Sprintf("%s@%s", f.channel_id, strsplit[3])
 			_, found := f.cache.Get(imghash)
+			f.cache.Set(imghash, true, cache.DefaultExpiration)
 			if found {
 				continue
 			}
-			f.cache.Set(imghash, true, cache.DefaultExpiration)
 
 			// Blacklist
 			is_blocked := false
