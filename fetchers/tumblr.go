@@ -9,6 +9,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"github.com/dghubble/oauth1"
 )
 
 type TumblrPosts struct {
@@ -63,13 +64,15 @@ type TumblrPosts struct {
 			Title          string `json:"title,omitempty"`
 			Body           string `json:"body,omitempty"`
 		} `json:"posts"`
-		TotalPosts int `json:"total_posts"`
 	} `json:"response"`
 }
 
 type TumblrFetcher struct {
 	BaseFetcher
-	OAuthConsumerKey string `json:"oauth_consumer_key"`
+	OAuthConsumerKey string `json:"consumer_key"`
+	OAuthConsumerSecret string `json:"consumer_secret"`
+	OAuthToken string `json:"access_token"`
+	OAuthTokenSecret string `json:"access_token_secret"`
 	cache            *cache.Cache
 	channel_id  string
 }
@@ -78,6 +81,9 @@ func (f *TumblrFetcher) Init(db *storm.DB, channel_id string) (err error) {
 	f.DB = db.From("tumblr")
 	f.cache = cache.New(cacheExp*time.Hour, cachePurge*time.Hour)
 	f.channel_id = channel_id
+	config := oauth1.NewConfig(f.OAuthConsumerKey, f.OAuthConsumerSecret)
+	token := oauth1.NewToken(f.OAuthToken, f.OAuthTokenSecret)
+	f.client = *config.Client(oauth1.NoContext, token)
 	return
 }
 
@@ -85,7 +91,7 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 	if f.OAuthConsumerKey == "" {
 		return []ReplyMessage{}, errors.New("Need API key.")
 	}
-	api_url := fmt.Sprintf("https://api.tumblr.com/v2/blog/%s.tumblr.com/posts?api_key=%s", user, f.OAuthConsumerKey)
+	api_url := fmt.Sprintf("https://api.tumblr.com/v2/blog/%s.tumblr.com/posts", user)
 	resp_content, err := f.HTTPGet(api_url)
 	if err != nil {
 		log.Println("Unable to request tumblr api", err)

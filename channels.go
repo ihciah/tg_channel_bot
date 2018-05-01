@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/asdine/storm"
 	"github.com/ihciah/telebot"
-	f "github.com/ihciah/tg_channel_bot/fetchers"
+	f "./fetchers"
 	"log"
 	"strings"
 	"time"
