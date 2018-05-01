@@ -21,8 +21,8 @@ const (
 )
 
 type Resource struct {
-	URL string
-	T   int
+	URL     string
+	T       int
 	Caption string
 }
 
@@ -33,7 +33,7 @@ type ReplyMessage struct {
 }
 
 type Fetcher interface {
-	Init(*storm.DB, string) error                              // Initializing
+	Init(*storm.DB, string) error                      // Initializing
 	GetPush(string, []string) []ReplyMessage           // For channel message
 	GetPushAtLeastOne(string, []string) []ReplyMessage // For user message
 	GoBack(string, int64) error                        // Set last update time to N seconds before
@@ -98,4 +98,3 @@ func (f *BaseFetcher) GoBack(string, int64) error {
 func (f *BaseFetcher) Block(string) string {
 	return "Unimplement."
 }
-

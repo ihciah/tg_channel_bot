@@ -2,7 +2,7 @@ package main
 
 import (
 	tb "github.com/ihciah/telebot"
-	f "./fetchers"
+	f "github.com/ihciah/tg_channel_bot/fetchers"
 	"strconv"
 	"strings"
 )
@@ -43,27 +43,26 @@ func (TGBOT *TelegramBot) RegisterHandler() {
 	TGBOT.Bot.Handle(tb.OnPhoto, TGBOT.handle_photo)
 }
 
-func (TGBOT *TelegramBot) handle_photo(m *tb.Message){
+func (TGBOT *TelegramBot) handle_photo(m *tb.Message) {
 	chatid := strconv.FormatInt(m.OriginalChat.ID, 10)
-	if m.OriginalChat.Type == "channel"{
+	if m.OriginalChat.Type == "channel" {
 		chatid = "@" + m.OriginalChat.Username
 	}
 
 	pass := false
-	for _, v := range *TGBOT.Channels{
-		if v.ID == chatid && auth_user(m.Sender, *v.AdminUserIDs, TGBOT.Admins){
+	for _, v := range *TGBOT.Channels {
+		if v.ID == chatid && auth_user(m.Sender, *v.AdminUserIDs, TGBOT.Admins) {
 			pass = true
 			break
 		}
 	}
-	if !pass{
+	if !pass {
 		TGBOT.Bot.Send(m.Sender, "Unauthorized.")
 		return
 	}
 
-
 	var fetcher f.Fetcher
-	if strings.Contains(m.Caption, "tumblr"){
+	if strings.Contains(m.Caption, "tumblr") {
 		fetcher = new(f.TumblrFetcher)
 	}
 	fetcher.Init(TGBOT.Database, chatid)
@@ -103,7 +102,7 @@ func (TGBOT *TelegramBot) handle_controller(m *tb.Message) {
 		"listadmin":   TGBOT.requireSuperAdmin(TGBOT.h_listadmin),
 		"setinterval": TGBOT.h_setinterval,
 		"goback":      TGBOT.h_goback,
-		"id":			TGBOT.h_getid,
+		"id":          TGBOT.h_getid,
 	}
 
 	var cmd string

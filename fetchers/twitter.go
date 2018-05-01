@@ -18,7 +18,7 @@ type TwitterFetcher struct {
 	ConsumerKey       string `json:"consumer_key"`
 	ConsumerSecret    string `json:"consumer_secret"`
 	cache             *cache.Cache
-	channel_id string
+	channel_id        string
 }
 
 const (

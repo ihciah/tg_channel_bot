@@ -200,7 +200,7 @@ func (TGBOT *TelegramBot) h_getid(p []string, m *tb.Message) string {
 	first_name := m.Sender.FirstName
 	last_name := m.Sender.LastName
 	username := m.Sender.Username
-	return fmt.Sprintf("Hi %s %s(%s) !\nYour ID: %d\n\nChat: %s\nChatID: %d",last_name, first_name, username, user_id, chat_title, chat_id)
+	return fmt.Sprintf("Hi %s %s(%s) !\nYour ID: %d\n\nChat: %s\nChatID: %d", last_name, first_name, username, user_id, chat_title, chat_id)
 }
 
 func (TGBOT *TelegramBot) requireSuperAdmin(f func([]string, *tb.Message) string) func([]string, *tb.Message) string {

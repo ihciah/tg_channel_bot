@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/asdine/storm"
+	"github.com/dghubble/oauth1"
 	"github.com/patrickmn/go-cache"
 	"log"
 	"strings"
 	"time"
-	"github.com/dghubble/oauth1"
 )
 
 type TumblrPosts struct {
@@ -69,12 +69,12 @@ type TumblrPosts struct {
 
 type TumblrFetcher struct {
 	BaseFetcher
-	OAuthConsumerKey string `json:"consumer_key"`
+	OAuthConsumerKey    string `json:"consumer_key"`
 	OAuthConsumerSecret string `json:"consumer_secret"`
-	OAuthToken string `json:"access_token"`
-	OAuthTokenSecret string `json:"access_token_secret"`
-	cache            *cache.Cache
-	channel_id  string
+	OAuthToken          string `json:"access_token"`
+	OAuthTokenSecret    string `json:"access_token_secret"`
+	cache               *cache.Cache
+	channel_id          string
 }
 
 func (f *TumblrFetcher) Init(db *storm.DB, channel_id string) (err error) {
@@ -122,8 +122,8 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 				tType = TVIDEO
 			}
 			// Duplicate
-			strsplit := strings.Split(photo.OriginalSize.URL,"/")
-			if len(strsplit) < 4{
+			strsplit := strings.Split(photo.OriginalSize.URL, "/")
+			if len(strsplit) < 4 {
 				continue
 			}
 			imghash := fmt.Sprintf("%s@%s", f.channel_id, strsplit[3])
@@ -142,12 +142,22 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 			res = append(res, Resource{photo.OriginalSize.URL, tType, photo.OriginalSize.URL})
 		}
 		if p.VideoURL != "" {
-			res = append(res, Resource{p.VideoURL, TVIDEO, p.VideoURL})
+			urlpath := strings.Split(p.VideoURL, "/")
+			videopath := urlpath[len(urlpath)-1]
+			if strings.Contains(videopath, ".") {
+				videohash := fmt.Sprintf("%s@%s", f.channel_id, urlpath[len(urlpath)-1])
+				_, found := f.cache.Get(videohash)
+				f.cache.Set(videohash, true, cache.DefaultExpiration)
+				if !found {
+					res = append(res, Resource{p.VideoURL, TVIDEO, p.VideoURL})
+				}
+			} else {
+				res = append(res, Resource{p.VideoURL, TVIDEO, p.VideoURL})
+			}
 		}
 		if len(res) > 0 {
 			ret = append(ret, ReplyMessage{res, p.ShortURL, nil})
 		}
-
 	}
 	return ret, nil
 }
@@ -179,8 +189,8 @@ func (f *TumblrFetcher) GoBack(userid string, back int64) error {
 }
 
 func (f *TumblrFetcher) Block(caption string) string {
-	strsplit := strings.Split(caption,"/")
-	if len(strsplit) >=4 {
+	strsplit := strings.Split(caption, "/")
+	if len(strsplit) >= 4 {
 		imghash := fmt.Sprintf("%s@%s", f.channel_id, strsplit[3])
 		f.DB.Set("block", imghash, true)
 		return fmt.Sprintf("%s blocked.", imghash)
