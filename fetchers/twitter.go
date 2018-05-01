@@ -18,16 +18,18 @@ type TwitterFetcher struct {
 	ConsumerKey       string `json:"consumer_key"`
 	ConsumerSecret    string `json:"consumer_secret"`
 	cache             *cache.Cache
+	channel_id string
 }
 
 const (
 	MaxTweetCount = "20"
 )
 
-func (f *TwitterFetcher) Init(db *storm.DB) (err error) {
+func (f *TwitterFetcher) Init(db *storm.DB, channel_id string) (err error) {
 	f.DB = db.From("twitter")
 	f.api = anaconda.NewTwitterApiWithCredentials(f.AccessToken, f.AccessToeknSecret, f.ConsumerKey, f.ConsumerSecret)
 	f.cache = cache.New(cacheExp*time.Hour, cachePurge*time.Hour)
+	f.channel_id = channel_id
 	return
 }
 
@@ -55,7 +57,7 @@ func (f *TwitterFetcher) getUserTimeline(user string, time int64) ([]ReplyMessag
 		if msgid == "" {
 			msgid = tweet.IdStr
 		}
-		msgid = fmt.Sprintf("%s@%s", user, msgid)
+		msgid = fmt.Sprintf("%s@%s", f.channel_id, msgid)
 		_, found := f.cache.Get(msgid)
 		if found {
 			continue

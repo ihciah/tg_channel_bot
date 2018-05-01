@@ -183,7 +183,7 @@ func (TGBOT *TelegramBot) h_goback(p []string, m *tb.Message) string {
 			if module_id < 0 {
 				return "Unsupported site."
 			}
-			fetcher := TGBOT.CreateModule(module_id)
+			fetcher := TGBOT.CreateModule(module_id, v.ID)
 			if err := fetcher.GoBack(v.ID, back); err != nil {
 				return fmt.Sprintf("Error when go back. %s", err)
 			}

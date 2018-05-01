@@ -7,7 +7,6 @@ import (
 	"github.com/asdine/storm"
 	"github.com/patrickmn/go-cache"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -72,11 +71,13 @@ type TumblrFetcher struct {
 	BaseFetcher
 	OAuthConsumerKey string `json:"oauth_consumer_key"`
 	cache            *cache.Cache
+	channel_id  string
 }
 
-func (f *TumblrFetcher) Init(db *storm.DB) (err error) {
+func (f *TumblrFetcher) Init(db *storm.DB, channel_id string) (err error) {
 	f.DB = db.From("tumblr")
 	f.cache = cache.New(cacheExp*time.Hour, cachePurge*time.Hour)
+	f.channel_id = channel_id
 	return
 }
 
@@ -108,42 +109,28 @@ func (f *TumblrFetcher) getUserTimeline(user string, time int64) ([]ReplyMessage
 			break
 		}
 
-		var msgid string
-		msgid = strconv.FormatInt(p.ID, 10)
-		if len(p.Trail) > 1 {
-			// We should get the original message id
-			msgid_str, ok := p.Trail[0].Post.ID.(string)
-			if ok && msgid_str != "" {
-				msgid = msgid_str
-			}
-			msgid_int64, ok := p.Trail[0].Post.ID.(int64)
-			if ok && msgid_int64 != 0 {
-				msgid = strconv.FormatInt(msgid_int64, 10)
-			}
-		}
-		msgid = fmt.Sprintf("%s@%s", user, msgid)
-		_, found := f.cache.Get(msgid)
-		if found {
-			continue
-		}
-		f.cache.Set(msgid, true, cache.DefaultExpiration)
-
 		res := make([]Resource, 0, len(p.Photos))
 		for _, photo := range p.Photos {
 			tType := TIMAGE
 			if strings.HasSuffix(strings.ToLower(photo.OriginalSize.URL), ".gif") {
 				tType = TVIDEO
 			}
-
+			// Duplicate
 			strsplit := strings.Split(photo.OriginalSize.URL,"/")
-			if len(strsplit) >=4 {
-				imghash := fmt.Sprintf("%s@%s", user, strsplit[3])
-				is_blocked := false
-				if err := f.DB.Get("block", imghash, &is_blocked); err == nil {
-					if is_blocked{
-						continue
-					}
-				}
+			if len(strsplit) < 4{
+				continue
+			}
+			imghash := fmt.Sprintf("%s@%s", f.channel_id, strsplit[3])
+			_, found := f.cache.Get(imghash)
+			if found {
+				continue
+			}
+			f.cache.Set(imghash, true, cache.DefaultExpiration)
+
+			// Blacklist
+			is_blocked := false
+			if err := f.DB.Get("block", imghash, &is_blocked); err == nil && is_blocked {
+				continue
 			}
 
 			res = append(res, Resource{photo.OriginalSize.URL, tType, photo.OriginalSize.URL})
@@ -185,10 +172,10 @@ func (f *TumblrFetcher) GoBack(userid string, back int64) error {
 	return f.DB.Set("last_update", userid, now-back)
 }
 
-func (f *TumblrFetcher) Block(userid string, caption string) string {
+func (f *TumblrFetcher) Block(caption string) string {
 	strsplit := strings.Split(caption,"/")
 	if len(strsplit) >=4 {
-		imghash := fmt.Sprintf("%s@%s", userid, strsplit[3])
+		imghash := fmt.Sprintf("%s@%s", f.channel_id, strsplit[3])
 		f.DB.Set("block", imghash, true)
 		return fmt.Sprintf("%s blocked.", imghash)
 	}

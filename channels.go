@@ -174,7 +174,7 @@ func (c *Channel) UpdateSettings(action int, param interface{}) {
 }
 
 func (c *Channel) PushModule(control chan int, module_id int, followings []string, wait_time time.Duration) {
-	fetcher := c.TGBOT.CreateModule(module_id)
+	fetcher := c.TGBOT.CreateModule(module_id, c.ID)
 	for {
 		log.Printf("Will check for update for module %s-%s:%s", c.ID, MakeModuleLabeler().Module2Str(module_id), strings.Join(followings, ","))
 		next_start := time.After(wait_time)

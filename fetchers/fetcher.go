@@ -33,11 +33,11 @@ type ReplyMessage struct {
 }
 
 type Fetcher interface {
-	Init(*storm.DB) error                              // Initializing
+	Init(*storm.DB, string) error                              // Initializing
 	GetPush(string, []string) []ReplyMessage           // For channel message
 	GetPushAtLeastOne(string, []string) []ReplyMessage // For user message
 	GoBack(string, int64) error                        // Set last update time to N seconds before
-	Block(string, string) string
+	Block(string) string
 }
 
 type BaseFetcher struct {
@@ -48,7 +48,7 @@ type BaseFetcher struct {
 }
 
 // Initialize
-func (f *BaseFetcher) Init(db *storm.DB) error {
+func (f *BaseFetcher) Init(db *storm.DB, _ string) error {
 	f.UA = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
 	f.client = http.Client{Timeout: time.Duration(30) * time.Second}
 	return nil
@@ -95,7 +95,7 @@ func (f *BaseFetcher) GoBack(string, int64) error {
 	return errors.New("Time machine unsupported for this site.")
 }
 
-func (f *BaseFetcher) Block(string, string) string {
+func (f *BaseFetcher) Block(string) string {
 	return "Unimplement."
 }
 
