@@ -2,7 +2,7 @@ package main
 
 import (
 	tb "github.com/ihciah/telebot"
-	f "./fetchers"
+	f "github.com/ihciah/tg_channel_bot/fetchers"
 	"strconv"
 	"strings"
 )
