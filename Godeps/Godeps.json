@@ -1,6 +1,6 @@
 {
 	"ImportPath": "tg_channel_bot",
-	"GoVersion": "go1.8",
+	"GoVersion": "go1.10",
 	"GodepVersion": "v80",
 	"Deps": [
 		{
@@ -100,6 +100,10 @@
 			"ImportPath": "github.com/pkg/errors",
 			"Comment": "v0.8.0-12-g816c908",
 			"Rev": "816c9085562cd7ee03e7f8188a1cfd942858cded"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "1e491301e022f8f977054da4c2d852decd59571f"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
