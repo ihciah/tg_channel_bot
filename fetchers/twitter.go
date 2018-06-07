@@ -14,7 +14,7 @@ type TwitterFetcher struct {
 	BaseFetcher
 	api               *anaconda.TwitterApi
 	AccessToken       string `json:"access_token"`
-	AccessToeknSecret string `json:"access_token_secret"`
+	AccessTokenSecret string `json:"access_token_secret"`
 	ConsumerKey       string `json:"consumer_key"`
 	ConsumerSecret    string `json:"consumer_secret"`
 	cache             *cache.Cache
@@ -27,7 +27,7 @@ const (
 
 func (f *TwitterFetcher) Init(db *storm.DB, channel_id string) (err error) {
 	f.DB = db.From("twitter")
-	f.api = anaconda.NewTwitterApiWithCredentials(f.AccessToken, f.AccessToeknSecret, f.ConsumerKey, f.ConsumerSecret)
+	f.api = anaconda.NewTwitterApiWithCredentials(f.AccessToken, f.AccessTokenSecret, f.ConsumerKey, f.ConsumerSecret)
 	f.cache = cache.New(cacheExp*time.Hour, cachePurge*time.Hour)
 	f.channel_id = channel_id
 	return
