@@ -1,0 +1,117 @@
+{
+	"ImportPath": "tg_channel_bot",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/ChimeraCoder/anaconda",
+			"Comment": "v2.0.0-7-ga1f4899",
+			"Rev": "a1f48994eee061428eadcac94cf5fe98dbab0967"
+		},
+		{
+			"ImportPath": "github.com/ChimeraCoder/tokenbucket",
+			"Rev": "c5a927568de7aad8a58127d80bcd36ca4e71e454"
+		},
+		{
+			"ImportPath": "github.com/asdine/storm",
+			"Comment": "v2.1.1",
+			"Rev": "bda68dab90fc908ee5dbccb36400edf4f54972d6"
+		},
+		{
+			"ImportPath": "github.com/asdine/storm/codec",
+			"Comment": "v2.1.1",
+			"Rev": "bda68dab90fc908ee5dbccb36400edf4f54972d6"
+		},
+		{
+			"ImportPath": "github.com/asdine/storm/codec/json",
+			"Comment": "v2.1.1",
+			"Rev": "bda68dab90fc908ee5dbccb36400edf4f54972d6"
+		},
+		{
+			"ImportPath": "github.com/asdine/storm/index",
+			"Comment": "v2.1.1",
+			"Rev": "bda68dab90fc908ee5dbccb36400edf4f54972d6"
+		},
+		{
+			"ImportPath": "github.com/asdine/storm/internal",
+			"Comment": "v2.1.1",
+			"Rev": "bda68dab90fc908ee5dbccb36400edf4f54972d6"
+		},
+		{
+			"ImportPath": "github.com/asdine/storm/q",
+			"Comment": "v2.1.1",
+			"Rev": "bda68dab90fc908ee5dbccb36400edf4f54972d6"
+		},
+		{
+			"ImportPath": "github.com/azr/backoff",
+			"Rev": "53511d3c733003985b0b76f733df1f4d0095ee6a"
+		},
+		{
+			"ImportPath": "github.com/coreos/bbolt",
+			"Comment": "v1.3.1-coreos.6-14-gaf9db20",
+			"Rev": "af9db2027c98c61ecd8e17caa5bd265792b9b9a2"
+		},
+		{
+			"ImportPath": "github.com/dghubble/oauth1",
+			"Comment": "v0.4.0-18-gc0a405b",
+			"Rev": "c0a405baf29f5ed2616bc1ef6b778532c960aa5b"
+		},
+		{
+			"ImportPath": "github.com/dghubble/sling",
+			"Comment": "v1.1.0-7-g38781bc",
+			"Rev": "38781bc2cb5cb513689208cbff1f7c4fc93cc0d2"
+		},
+		{
+			"ImportPath": "github.com/dustin/go-jsonpointer",
+			"Rev": "ba0abeacc3dcca5b9b20f31509c46794edbc9965"
+		},
+		{
+			"ImportPath": "github.com/dustin/gojson",
+			"Rev": "2e71ec9dd5adce3b168cd0dbde03b5cc04951c30"
+		},
+		{
+			"ImportPath": "github.com/garyburd/go-oauth/oauth",
+			"Rev": "bca2e7f09a178fd36b034107a00e2323bca6a82e"
+		},
+		{
+			"ImportPath": "github.com/go-xmlpath/xmlpath",
+			"Rev": "860cbeca3ebcc600db0b213c0e83ad6ce91f5739"
+		},
+		{
+			"ImportPath": "github.com/google/go-querystring/query",
+			"Rev": "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+		},
+		{
+			"ImportPath": "github.com/ihciah/telebot",
+			"Comment": "ver2.0-28-gd8501a0",
+			"Rev": "d8501a0fb5afe06015f8819fff7a06c1dd43ae24"
+		},
+		{
+			"ImportPath": "github.com/ihciah/tg_channel_bot/fetchers",
+			"Comment": "v1.0.7",
+			"Rev": "58cc00965145a139d98397e7f73d0a406e4c9e95"
+		},
+		{
+			"ImportPath": "github.com/patrickmn/go-cache",
+			"Comment": "v2.1.0-1-g9f6ff22",
+			"Rev": "9f6ff22cfff829561052f5886ec80a2ac148b4eb"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-12-g816c908",
+			"Rev": "816c9085562cd7ee03e7f8188a1cfd942858cded"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "1e491301e022f8f977054da4c2d852decd59571f"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
+			"Rev": "1e491301e022f8f977054da4c2d852decd59571f"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "9527bec2660bd847c050fda93a0f0c6dee0800bb"
+		}
+	]
+}

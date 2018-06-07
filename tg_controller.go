@@ -41,7 +41,7 @@ func (TGBOT *TelegramBot) LoadConfigFromEnv() {
 	tumblrfetcher.OAuthTokenSecret = os.Getenv("TUMBLR_TOKEN_SECRET")
 
 	var twitterfetcher f.TwitterFetcher
-	twitterfetcher.AccessTokenSecret = os.Getenv("TWITTER_TOKEN_SECRET")
+	twitterfetcher.AccessToeknSecret = os.Getenv("TWITTER_TOKEN_SECRET")
 	twitterfetcher.AccessToken = os.Getenv("TWITTER_TOKEN")
 	twitterfetcher.ConsumerKey = os.Getenv("TWITTER_KEY")
 	twitterfetcher.ConsumerSecret = os.Getenv("TWITTER_SECRET")
