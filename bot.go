@@ -11,7 +11,7 @@ func parseCli() (string, bool) {
 	var config_file string
 	var verbose bool
 	flag.BoolVar(&verbose, "v", true, "verbose mode")
-	flag.StringVar(&config_file, "c", "config.json", "config file path")
+	flag.StringVar(&config_file, "c", "", "config file path")
 	flag.Parse()
 	return config_file, verbose
 }
@@ -28,7 +28,11 @@ func ListenExit(TGBOT *TelegramBot) {
 func main() {
 	config_path, _ := parseCli()
 	t := TelegramBot{}
-	t.LoadConfig(config_path)
+	if config_path != "" {
+		t.LoadConfig(config_path)
+	} else {
+		t.LoadConfigFromEnv()
+	}
 	RunPusher(&t)
 	go ListenExit(&t)
 	t.Serve()
